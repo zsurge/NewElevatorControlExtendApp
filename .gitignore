@@ -1,0 +1,10 @@
+#忽略BIN下所有文件
+/7Bin/*
+
+#忽略SI目录
+/NewElevatorControlExtendApp.si4project/*
+
+
+#忽略工程中间文件
+MDK_PRO/*
+!MDK_PRO/NewElevatorControlExAPP.uvprojx
