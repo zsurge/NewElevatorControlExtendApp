@@ -470,15 +470,16 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
 }
 
 
-
-uint8_t* packetBaseJson(uint8_t *jsonBuff)
+#if 0
+uint8_t* packetBaseJson(uint8_t *jsonBuff,char status)
 {
-    static uint8_t value[256] = {0};
+    static uint8_t value[200] = {0};
     
-	cJSON* root,*newroot,*tmpdataObj,*dataObj,*json_cmdCode,*json_devCode,*identification,*id;
+	cJSON* root,*dataObj,*newroot,*json_cmdCode,*json_ownerId,*json_cardNo,*json_ownerType,*json_residentialId,*json_buildingId,*json_roomId,*json_identification,*json_userName;
     char *tmpBuf;
     
 	root = cJSON_Parse ( ( char* ) jsonBuff );    //解析数据包
+	
 	if ( !root )
 	{
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
@@ -486,47 +487,72 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff)
         cJSON_Delete(root);        
         cJSON_Delete(newroot);
         my_free(tmpBuf);
+        tmpBuf=NULL;        
+        
 		return NULL;
 	}
 	else
 	{
-        json_cmdCode = cJSON_GetObjectItem ( root, "commandCode" );
-        json_devCode = cJSON_GetObjectItem ( root, "deviceCode" );
-        
-        tmpdataObj = cJSON_GetObjectItem ( root, "data" );        
-        identification = cJSON_GetObjectItem ( tmpdataObj, "identification" );
-        id = cJSON_GetObjectItem ( tmpdataObj, "id" );
-
-        newroot = cJSON_CreateObject();
-        dataObj = cJSON_CreateObject();
-        if(!newroot && !dataObj)
+        newroot = cJSON_CreateObject();   
+        if(!newroot)
         {
             log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
             cJSON_Delete(root);
             cJSON_Delete(newroot);
             my_free(tmpBuf);            
+            tmpBuf=NULL;        
+            
     		return NULL;
         }
 
-        if(json_cmdCode)
-            cJSON_AddStringToObject(newroot, "commandCode", json_cmdCode->valuestring);
-
-        if(json_devCode)
-            cJSON_AddStringToObject(newroot, "deviceCode", json_devCode->valuestring);
-
-
-        cJSON_AddItemToObject(newroot, "data", dataObj);
+        dataObj = cJSON_GetObjectItem ( root, "data" );
         
-        if(identification)
-            cJSON_AddStringToObject(dataObj, "identification", identification->valuestring);
+        json_cmdCode = cJSON_GetObjectItem ( root, "commandCode" );
+        
+        json_ownerId = cJSON_GetObjectItem ( dataObj, "ownerId" );       
+        json_cardNo = cJSON_GetObjectItem ( dataObj, "cardNo" );
+        json_ownerType = cJSON_GetObjectItem ( dataObj, "ownerType" );
+        json_residentialId = cJSON_GetObjectItem ( dataObj, "residentialId" );     
+        json_buildingId = cJSON_GetObjectItem ( dataObj, "buildingId" );
+        json_roomId = cJSON_GetObjectItem ( dataObj, "roomId" );   
+        json_identification = cJSON_GetObjectItem ( dataObj, "identification" );  
+        json_userName = cJSON_GetObjectItem ( dataObj, "userName" );
 
-        if(id)
-            cJSON_AddNumberToObject(dataObj, "id", id->valueint);
+        if(json_cmdCode)
+            cJSON_AddStringToObject(newroot, "commandCode", json_cmdCode->valuestring);     
+            
+        if(json_ownerId)
+            cJSON_AddNumberToObject(newroot, "ownerId", json_ownerId->valueint);
+            
+        
+        cJSON_AddStringToObject(newroot, "deviceCode",gDevBaseParam.deviceCode.deviceSn);
 
-        cJSON_AddStringToObject(dataObj, "status", "1");
+        if(json_cardNo)
+            cJSON_AddStringToObject(newroot, "cardNo", json_cardNo->valuestring);     
+        if(json_identification)
+            cJSON_AddStringToObject(newroot, "identification", json_identification->valuestring);     
+        if(json_userName)
+            cJSON_AddStringToObject(newroot, "userName", json_userName->valuestring);           
+        if(json_ownerType)
+            cJSON_AddNumberToObject(newroot, "ownerType", json_ownerType->valueint);
+        if(json_residentialId)
+            cJSON_AddNumberToObject(newroot, "residentialId", json_residentialId->valueint);     
+            
+        if(json_buildingId)
+            cJSON_AddNumberToObject(newroot, "buildingId", json_buildingId->valueint);
 
-                
+        if(json_roomId)
+            cJSON_AddNumberToObject(newroot, "roomId", json_roomId->valueint); 
+            
+        
+        if(status == 1)
+            cJSON_AddStringToObject(newroot, "status", "1");
+        else
+            cJSON_AddStringToObject(newroot, "status", "0");          
+
+        
         tmpBuf = cJSON_PrintUnformatted(newroot); 
+
 
         if(!tmpBuf)
         {
@@ -535,134 +561,157 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff)
             cJSON_Delete(root);
             cJSON_Delete(newroot);      
             my_free(tmpBuf);
+            tmpBuf=NULL;        
+            
             return NULL;
         }    
 
         strcpy((char *)value,tmpBuf);
 
 	}
-
-    cJSON_Delete(root);
-
-    cJSON_Delete(newroot);
-
+	
     my_free(tmpBuf);
+	cJSON_Delete(root);
+    cJSON_Delete(newroot);
+    tmpBuf=NULL;  
+    
+    return value;    
+}
+#else
+uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
+{
+    static uint8_t value[200] = {0};
+    
+	cJSON* root,*dataObj,*newroot,*tmpJsonObj;
+    char *tmpBuf;
+    
+	root = cJSON_Parse ( ( char* ) jsonBuff );    //解析数据包
+	
+	if ( !root )
+	{
+		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
+        
+        cJSON_Delete(root);        
+        cJSON_Delete(newroot);
+        my_free(tmpBuf);
+        tmpBuf=NULL;        
+        
+		return NULL;
+	}
+	else
+	{
+        newroot = cJSON_CreateObject();   
+        if(!newroot)
+        {
+            log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
+            cJSON_Delete(root);
+            cJSON_Delete(newroot);
+            my_free(tmpBuf);            
+            tmpBuf=NULL;        
+            
+    		return NULL;
+        }
 
+        
+        cJSON_AddStringToObject(newroot, "deviceCode",gDevBaseParam.deviceCode.deviceSn); 
+        
+        tmpJsonObj = cJSON_GetObjectItem ( root, "commandCode" );        
+        if(tmpJsonObj)
+        {
+            if(memcmp(srcCmd,tmpJsonObj->valuestring,strlen((const char*)tmpJsonObj->valuestring)) == 0)
+            {
+                cJSON_AddStringToObject(newroot, "commandCode", tmpJsonObj->valuestring); 
+            }
+            else
+            {
+                cJSON_AddStringToObject(newroot, "commandCode", srcCmd); 
+            }
+        }
 
+            
+        dataObj = cJSON_GetObjectItem ( root, "data" );
+        
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "ownerId" );      
+        if(tmpJsonObj)
+            cJSON_AddNumberToObject(newroot, "ownerId", tmpJsonObj->valueint);
+            
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "cardNo" );
+        if(tmpJsonObj)
+            cJSON_AddStringToObject(newroot, "cardNo", tmpJsonObj->valuestring);     
+            
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "ownerType" );
+        if(tmpJsonObj)
+            cJSON_AddNumberToObject(newroot, "ownerType", tmpJsonObj->valueint);
+            
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "residentialId" );     
+        if(tmpJsonObj)
+            cJSON_AddNumberToObject(newroot, "residentialId", tmpJsonObj->valueint);     
+        
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "buildingId" );
+        if(tmpJsonObj)
+            cJSON_AddNumberToObject(newroot, "buildingId", tmpJsonObj->valueint);
+            
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "roomId" );   
+        if(tmpJsonObj)
+            cJSON_AddNumberToObject(newroot, "roomId", tmpJsonObj->valueint); 
+            
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "identification" ); 
+        if(tmpJsonObj)
+            cJSON_AddStringToObject(newroot, "identification", tmpJsonObj->valuestring);     
+        
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "userName" );
+        if(tmpJsonObj)
+            cJSON_AddStringToObject(newroot, "userName", tmpJsonObj->valuestring);
+            
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "qrId" );  
+        if(tmpJsonObj)
+             cJSON_AddNumberToObject(newroot, "qrId", tmpJsonObj->valueint);
+             
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "version" );
+        if(tmpJsonObj)
+            cJSON_AddStringToObject(newroot, "version", tmpJsonObj->valuestring);   
+        
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "templateId" );             
+         if(tmpJsonObj)
+             cJSON_AddNumberToObject(newroot, "templateId", tmpJsonObj->valueint);
+
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "id" );             
+         if(tmpJsonObj)
+             cJSON_AddNumberToObject(newroot, "id", tmpJsonObj->valueint);  
+            
+        
+        if(status == 1)
+            cJSON_AddStringToObject(newroot, "status", "1");
+        else
+            cJSON_AddStringToObject(newroot, "status", "0");    
+
+            
+        tmpBuf = cJSON_PrintUnformatted(newroot); 
+        if(!tmpBuf)
+        {
+            log_d("cJSON_PrintUnformatted error \r\n");
+
+            cJSON_Delete(root);
+            cJSON_Delete(newroot);      
+            my_free(tmpBuf);
+            tmpBuf=NULL;        
+            
+            return NULL;
+        }    
+
+        strcpy((char *)value,tmpBuf);
+
+	}
+	
+    my_free(tmpBuf);
+	cJSON_Delete(root);
+    cJSON_Delete(newroot);
+    tmpBuf=NULL;  
+    
     return value;    
 }
 
-#if 0
-uint8_t parseQrCode(uint8_t *jsonBuff,QRCODE_INFO_STRU *qrCodeInfo)
-{
-    cJSON *root ,*devArray,*tagFloorArray,*tmpArray;
-    int devNum = 0;
-    int tagFloorNum = 0;
-    int index = 0;
-    uint8_t isFind = 0;
-    int localSn = 11111111;
-
-    
-    if(!jsonBuff || !qrCodeInfo)
-    {
-        cJSON_Delete(root);
-        log_d("error json data\r\n");
-        return STR_EMPTY_ERR;
-    }    
-    
-    root = cJSON_Parse((char *)jsonBuff);    //解析数据包
-    if (!root)  
-    {  
-        cJSON_Delete(root);
-        log_d("Error before: [%s]\r\n",cJSON_GetErrorPtr());  
-        return CJSON_PARSE_ERR;
-    }     
-
-    devArray = cJSON_GetObjectItem(root, "d");
-    if(devArray == NULL)
-    {
-        log_d("devArray NULL\r\n");
-        cJSON_Delete(root);
-        return STR_EMPTY_ERR;
-    }   
-
-    devNum = cJSON_GetArraySize(devArray);
-
-    log_d("devNum = %d\r\n",devNum);
-
-    //查找是否在范围之内
-    for(index=0;index<devNum;index++)
-    {
-        tmpArray = cJSON_GetArrayItem(devArray, index);
-        log_d("tmpArray->valueint = %d\r\n",tmpArray->valueint);
-        if(localSn == tmpArray->valueint)
-        {
-            isFind = 1;
-        }
-    }
-    
-    tagFloorArray = cJSON_GetObjectItem(root, "l");
-    if(tagFloorArray == NULL)
-    {
-        log_d("tagFloorArray NULL\r\n");
-        cJSON_Delete(root);
-        return STR_EMPTY_ERR;
-    }
-
-    tagFloorNum = cJSON_GetArraySize(tagFloorArray);
-    log_d("tagFloorNum = %d\r\n",tagFloorNum);
-
-    //只是把权限楼层打印出来并没有存储
-    for(index=0;index<tagFloorNum;index++)
-    {
-        tmpArray = cJSON_GetArrayItem(tagFloorArray, index);
-        log_d("tmpArray->valueint = %d\r\n",tmpArray->valueint);
-    }
-        
-
-    tmpArray = cJSON_GetObjectItem(root, "tF");
-    qrCodeInfo->tagFloor=tmpArray->valueint;
-    log_d("qrCodeInfo->tagFloor = %d\r\n",qrCodeInfo->tagFloor);  
-
-    
-    tmpArray = cJSON_GetObjectItem(root, "oN");
-    qrCodeInfo->openNum = tmpArray->valueint;
-    log_d("qrCodeInfo->openNum= %d\r\n",qrCodeInfo->openNum); 
-    
-    tmpArray = cJSON_GetObjectItem(root, "t");
-    qrCodeInfo->type=tmpArray->valueint;
-    log_d("qrCodeInfo->type= %d\r\n",qrCodeInfo->type); 
-    
-    tmpArray = cJSON_GetObjectItem(root, "sT");
-    strcpy(qrCodeInfo->startTime,tmpArray->valuestring);
-    log_d("qrCodeInfo->startTime= %s\r\n",qrCodeInfo->startTime); 
-
-    tmpArray = cJSON_GetObjectItem(root, "eT");
-    strcpy(qrCodeInfo->endTime,tmpArray->valuestring);
-    log_d("qrCodeInfo->endTime= %s\r\n",qrCodeInfo->endTime); 
-
-    tmpArray = cJSON_GetObjectItem(root, "qS");
-    strcpy(qrCodeInfo->qrStarttimeStamp,tmpArray->valuestring);
-    log_d("qrCodeInfo->qrStarttimeStamp= %s\r\n",qrCodeInfo->qrStarttimeStamp); 
-    
-    tmpArray = cJSON_GetObjectItem(root, "qE");
-    strcpy(qrCodeInfo->qrEndtimeStamp,tmpArray->valuestring);
-    log_d("qrCodeInfo->qrEndtimeStamp= %s\r\n",qrCodeInfo->qrEndtimeStamp); 
-    
-    tmpArray = cJSON_GetObjectItem(root, "qI");
-    strcpy(qrCodeInfo->qrID,tmpArray->valuestring);
-    log_d("qrCodeInfo->qrID= %s\r\n",qrCodeInfo->qrID); 
-    
-    cJSON_Delete(root);
-    
-    return isFind;
-
-}
 #endif
-
-
-
-
 
 
 uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num)

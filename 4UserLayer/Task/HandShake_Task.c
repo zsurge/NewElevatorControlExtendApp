@@ -90,7 +90,6 @@ static void vTaskHandShake(void *pvParameters)
 //    readTemplateData();
 //    readDevState();
 //    clearTemplateFRAM();
-
 //    eraseUserDataAll();
 
     initRecordIndex();
@@ -100,10 +99,7 @@ static void vTaskHandShake(void *pvParameters)
     initTemplateParam();
     
     DisplayDevInfo();
-    
-//    vTaskDelay(500);
-//    
-//    vTaskDelete( NULL ); //É¾³ý×Ô¼º
+
 
     while(1)
     {  

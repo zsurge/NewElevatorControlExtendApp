@@ -128,8 +128,6 @@ static void vTaskDataProcess(void *pvParameters)
                    break;
                 } 
                 
-                localUserData.platformType = 4;
-                localUserData.authMode = ptMsg->authMode; 
                 memcpy(localUserData.timeStamp,time_to_timestamp(),TIMESTAMP_LEN);
                 log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp);  
                 

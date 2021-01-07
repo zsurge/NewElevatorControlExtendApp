@@ -1289,9 +1289,9 @@ void addHead(uint8_t *head,uint8_t mode)
   
 }
 
-void qSortCard(HEADINFO_STRU *head,uint32_t length)
-{
-    quickSortNor(head,0, length-1);
-}
+//void qSortCard(HEADINFO_STRU *head,uint32_t length)
+//{
+//    quickSortNor(head,0, length-1);
+//}
 
 

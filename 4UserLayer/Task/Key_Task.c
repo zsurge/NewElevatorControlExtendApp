@@ -142,6 +142,7 @@ static void vTaskKey(void *pvParameters)
 //                    test_env();
                    
                      log_d("KEY_DOWN_K4\r\n");
+//                     eraseUserDataAll();
 //                    ef_set_env_blob("remote_sn","7A13DCC67054F72CC07F",20);
 //                ef_set_env_blob("remote_sn","823545AE9B2345B08FD8",20);
                     

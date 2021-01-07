@@ -99,7 +99,8 @@ SYSERRORCODE_E modifyJsonItem(const uint8_t *srcJson,const uint8_t *item,const u
 uint8_t* GetJsonItem ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t isSubitem);
 
 //通用函数，组成基的返回数据包
-uint8_t* packetBaseJson(uint8_t *jsonBuff);
+
+uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status);
 
 //对设备信息进行打包
 SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJson);

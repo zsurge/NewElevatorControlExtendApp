@@ -167,7 +167,7 @@ typedef struct USERDATA
     uint8_t defaultFloor;                           //默认楼层  
     uint8_t cardState;                              //卡状态 有效/已删除/黑名单/临时卡    
     uint8_t userState;                              //用户状态 有效/已删除
-    uint8_t platformType;                           //平台类型，第三方平台、博思高平台等
+    uint8_t ownerType;                           //平台类型，第三方平台、博思高平台等
     uint8_t userId[CARD_USER_LEN+1];                //用户ID
     uint8_t cardNo[CARD_USER_LEN+1];                //卡号
     char accessFloor[FLOOR_ARRAY_LENGTH+1];         //楼层权限
@@ -206,7 +206,7 @@ void sortHead(HEADINFO_STRU *head,int length);
 
 void addHead(uint8_t *head,uint8_t mode);
 
-void qSortCard(HEADINFO_STRU *head,uint32_t length);
+//void qSortCard(HEADINFO_STRU *head,uint32_t length);
 
 int delHead(uint8_t *headBuff,uint8_t mode);
 

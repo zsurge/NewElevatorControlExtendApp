@@ -300,8 +300,6 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 
 	cJSON_AddItemToObject ( root, "data", dataObj );
 
-//    if(localUserData->platformType == 4 )
-//    {
 	cJSON_AddStringToObject ( root, "commandCode","3007" );
 	cJSON_AddStringToObject ( dataObj, "cardNo", ( const char* ) localUserData->cardNo );
 	cJSON_AddNumberToObject ( dataObj, "callType",localUserData->authMode );
@@ -309,29 +307,17 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 	strcpy ( tmpTime, ( const char* ) bsp_ds1302_readtime() );
 	cJSON_AddStringToObject ( dataObj, "callElevatorTime",tmpTime );
 	cJSON_AddStringToObject ( dataObj, "timeStamp", ( const char* ) localUserData->startTime );
-	cJSON_AddStringToObject ( dataObj, "userId", ( const char* ) localUserData->userId );
+	cJSON_AddStringToObject ( dataObj, "ownerId", ( const char* ) localUserData->userId );
 
 	if ( localUserData->authMode == 7 )
 	{
-		cJSON_AddNumberToObject ( dataObj, "type",localUserData->platformType );
 		cJSON_AddNumberToObject ( dataObj, "callState",CALL_OK );
 	}
 	else
 	{
 		cJSON_AddNumberToObject ( dataObj, "type",CALL_OK );
 	}
-//    }
-//    else
-//    {
-//        cJSON_AddStringToObject(root, "commandCode","4002");
-//        cJSON_AddNumberToObject(dataObj, "enterType",  4);//这里设置为4是QRCODE在开发者平台上的数据，梯控上的数据为7
-//        cJSON_AddStringToObject(dataObj, "qrId",  (const char*)localUserData->userId);
-//        cJSON_AddNumberToObject(dataObj, "status", ON_LINE);
-//        cJSON_AddStringToObject(dataObj, "enterTime",(const char*)bsp_ds1302_readtime());
-//        cJSON_AddNumberToObject(dataObj, "faceCompare",CALL_OK);//：1、成功 2失败，
-//        cJSON_AddNumberToObject(dataObj, "direction", DIRECTION_IN);//1进，2出
-//        cJSON_AddStringToObject(dataObj, "cardNo", (const char*)localUserData->cardNo);
-//    }
+
 
 	tmpBuf = cJSON_PrintUnformatted ( root );
 
@@ -398,9 +384,7 @@ uint8_t parseQrCode ( uint8_t* jsonBuff,USERDATA_STRU* qrCodeInfo )
 //    sprintf((char*)qrCodeInfo->userId,"%d",tmpArray->valueint);
 //    log_d("qrCodeInfo->qrID= %s\r\n",qrCodeInfo->userId);
 
-//    tmpArray = cJSON_GetObjectItem(root, "t");
-//    qrCodeInfo->platformType = tmpArray->valueint;
-//    log_d("qrCodeInfo->type= %d\r\n",qrCodeInfo->platformType);
+
 
 	tmpArray = NULL;
 	tmpArray = cJSON_GetObjectItem ( root, "i" );
