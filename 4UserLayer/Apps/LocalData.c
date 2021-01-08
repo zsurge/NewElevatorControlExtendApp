@@ -518,7 +518,6 @@ uint8_t delUserData ( uint8_t* header,uint8_t mode )
 	uint32_t address = 0;
 
 	int32_t iTime1, iTime2;
-	//log_d("sizeof(USERDATA_STRU) = %d\r\n",sizeof(USERDATA_STRU));
 
 	iTime1 = xTaskGetTickCount();   /* 记下开始时间 */
 
@@ -584,7 +583,7 @@ int delHead(uint8_t *headBuff,uint8_t mode)
     HEADINFO_STRU tmpCard;
     uint32_t addr = 0;    
     int num = 0;
-    uint32_t flashIndex = 0;
+    int flashIndex = 0;
 
     if ( headBuff == NULL )
 	{
@@ -1130,7 +1129,7 @@ static int Bin_Search(HEADINFO_STRU *num,int numsSize,int target)
     return NO_FIND_HEAD;
 }
 
-//返回查找到值的FLASH索引
+//返回查找到值的索引
 static int Bin_Search_addr(uint32_t startAddr,int numsSize,int target)
 {
 	int low = 0,high = numsSize-1,mid;

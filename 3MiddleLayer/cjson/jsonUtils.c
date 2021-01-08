@@ -299,38 +299,34 @@ SYSERRORCODE_E upgradeDataPacket(uint8_t *descBuf)
 {
     SYSERRORCODE_E result = NO_ERR;
     char up_status[7] = {0};  
-    uint8_t value[200] = {0};
-    uint8_t tmp[300] = {0};
+    uint8_t value[300] = {0};
     uint8_t send[300] = {0};
     
     ef_get_env_blob ( "upData", value, sizeof ( value ), NULL );
 
-    log_d("tmpBuf = %s\r\n",value);
-
-    result = modifyJsonItem((const uint8_t *)value,(const uint8_t *)"commandCode",(const uint8_t *)"1017",0,tmp);    
-    
 
     strcpy(up_status,(const char*)ef_get_env("up_status"));
+
     
     //升级失败
     if(memcmp(up_status,"101700",6) == 0)
     {
-        result = modifyJsonItem((const uint8_t *)tmp,(const uint8_t *)"status",(const uint8_t *)"2",1,send);
+        result = modifyJsonItem((const uint8_t *)value,(const uint8_t *)"status",(const uint8_t *)"2",0,send);
 
     }
     else if(memcmp(up_status,"101711",6) == 0) //升级成功
-    {
-        result = modifyJsonItem((const uint8_t *)tmp,(const uint8_t *)"status",(const uint8_t *)"1",1,send);
+    {    
+        result = modifyJsonItem((const uint8_t *)value,(const uint8_t *)"status",(const uint8_t *)"1",0,send);
 
     }
     else if(memcmp(up_status,"101722",6) == 0) //升级成功
     {
-        result = modifyJsonItem((const uint8_t *)tmp,(const uint8_t *)"status",(const uint8_t *)"1",1,send);
+        result = modifyJsonItem((const uint8_t *)value,(const uint8_t *)"status",(const uint8_t *)"1",0,send);
 
     }
     else if(memcmp(up_status,"101733",6) == 0) //禁止升级
     {
-        result = modifyJsonItem((const uint8_t *)tmp,(const uint8_t *)"status",(const uint8_t *)"3",1,send);
+        result = modifyJsonItem((const uint8_t *)value,(const uint8_t *)"status",(const uint8_t *)"3",0,send);
 
     }
     else
@@ -338,18 +334,20 @@ SYSERRORCODE_E upgradeDataPacket(uint8_t *descBuf)
         //无升级动作
     }    
  
-    strcpy((char *)descBuf,send);
+    strcpy((char *)descBuf,(const char*)send);
 
+    log_d("ack = %s\r\n",descBuf);
 
     return result;
 
 }
 
+
 SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
 {
     SYSERRORCODE_E result = NO_ERR;
     
-    cJSON* root,*newroot,*tmpdataObj,*dataObj,*json_devCode,*productionModel,*id;
+    cJSON* root,*newroot,*tmpdataObj,*json_devCode,*productionModel,*id,*json_cmd;
     cJSON* version,*softwareFirmware,*versionType;
     char *tmpBuf;
     
@@ -364,8 +362,7 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
     }
 
     newroot = cJSON_CreateObject();
-    dataObj = cJSON_CreateObject();
-    if(!newroot && !dataObj)
+    if(!newroot)
     {
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
@@ -374,36 +371,36 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
         return CJSON_PARSE_ERR;
     }  
     
-    json_devCode = cJSON_GetObjectItem ( root, "deviceCode" );
+    json_devCode = cJSON_GetObjectItem ( root, "deviceCode" );   
+    json_cmd = cJSON_GetObjectItem ( root, "commandCode" ); 
     
     tmpdataObj = cJSON_GetObjectItem ( root, "data" );        
-    productionModel = cJSON_GetObjectItem ( tmpdataObj, "productionModel" );
+    productionModel = cJSON_GetObjectItem ( tmpdataObj, "url" );
     id = cJSON_GetObjectItem ( tmpdataObj, "id" );
-
     version = cJSON_GetObjectItem ( tmpdataObj, "version" );
-    softwareFirmware = cJSON_GetObjectItem ( tmpdataObj, "softwareFirmware" );
-    versionType = cJSON_GetObjectItem ( tmpdataObj, "versionType" ); 
+//    softwareFirmware = cJSON_GetObjectItem ( tmpdataObj, "name" );
+    versionType = cJSON_GetObjectItem ( tmpdataObj, "type" ); 
 
     if(json_devCode)
         cJSON_AddStringToObject(newroot, "deviceCode", json_devCode->valuestring);
 
-
-    cJSON_AddItemToObject(newroot, "data", dataObj);
+    if(json_cmd)
+        cJSON_AddStringToObject(newroot, "commandCode", json_cmd->valuestring);
     
     if(productionModel)
-        cJSON_AddStringToObject(dataObj, "productionModel", productionModel->valuestring);
+        cJSON_AddStringToObject(newroot, "productionModel", productionModel->valuestring);
 
     if(id)
-        cJSON_AddNumberToObject(dataObj, "id", id->valueint);
+        cJSON_AddNumberToObject(newroot, "id", id->valueint);
 
     if(version)
-        cJSON_AddStringToObject(dataObj, "version", version->valuestring);
+        cJSON_AddStringToObject(newroot, "version", version->valuestring);
 
-    if(softwareFirmware)
-        cJSON_AddNumberToObject(dataObj, "softwareFirmware", softwareFirmware->valueint);
+//    if(softwareFirmware)
+//        cJSON_AddStringToObject(newroot, "softwareFirmware", softwareFirmware->valuestring);
         
     if(versionType)
-        cJSON_AddNumberToObject(dataObj, "versionType", versionType->valueint);  
+        cJSON_AddNumberToObject(newroot, "versionType", versionType->valueint);  
             
     tmpBuf = cJSON_PrintUnformatted(newroot); 
 
@@ -417,16 +414,19 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
         return CJSON_PARSE_ERR;
     }
 
+    log_d("upData = %s,len = %d\r\n",tmpBuf,strlen ((const char*)tmpBuf));
     ef_set_env_blob("upData",(const char*)tmpBuf,strlen ((const char*)tmpBuf));
 
-    cJSON_Delete(root);
 
+    cJSON_Delete(root);
     cJSON_Delete(newroot);
 
     my_free(tmpBuf);
+    tmpBuf=NULL;        
     
     return result;    
 }
+
 
 
 SYSERRORCODE_E getTimePacket(uint8_t *descBuf)

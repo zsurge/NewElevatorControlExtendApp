@@ -108,11 +108,11 @@ const CMD_HANDLE_T CmdList[] =
 {
 	{"201",  OpenDoor},
 	{"1006", AbnormalAlarm},
-    {"1010", DelUserId},
-	{"1012", AddCardNo},
-	{"1013", DelCardNo},
+    {"10027", DelUserId},
+	{"10004", AddCardNo},
+	{"10005", DelCardNo},
 	{"1015", AddSingleUser},
-	{"1016", UpgradeDev},
+	{"10006", UpgradeDev},
 	{"1017", UpgradeAck},
 	{"1024", SetJudgeMode},
 	{"1026", GetDevInfo},  
@@ -330,9 +330,7 @@ static SYSERRORCODE_E DelUserId( uint8_t* msgBuf )
     {
         return STR_EMPTY_ERR;
     }
-
-    //1.保存卡号和用户ID
-
+    
 //  2.日    期   : 2020年4月13日
 //    作    者   :  
 //    修改内容   : 这里返回人员ID 数组，是可以批量删除人员的
@@ -340,43 +338,17 @@ static SYSERRORCODE_E DelUserId( uint8_t* msgBuf )
     sprintf((char *)userId,"%08s",tmp);
     log_d("userId = %s\r\n",userId);
 
-//    log_d("=================================\r\n");
-//    rRet = readUserData(userId,USER_MODE,&userData);
-
-//    log_d("ret = %d\r\n",rRet);    
-//    log_d("userData.cardState = %d\r\n",userData.cardState);    
-//    log_d("userData.userState = %d\r\n",userData.userState);
-//    log_d("userData.cardNo = %s\r\n",userData.cardNo);
-//    log_d("userData.userId = %s\r\n",userData.userId);
-//    log_d("userData.accessFloor = %s\r\n",userData.accessFloor);
-//    log_d("userData.defaultFloor = %d\r\n",userData.defaultFloor);
-//    log_d("userData.startTime = %s\r\n",userData.startTime);
-
-
-//    if(rRet == 0)
-//    {
-//        userData.head = TABLE_HEAD;
-//        userData.userState = USER_DEL; //设置卡状态为0，删除卡
-//        wRet = modifyUserData(&userData,USER_MODE);
-//    }
-
     wRet = delUserData(userId,USER_MODE);
 
     if(wRet ==0)
     {
-        //响应服务器
-        result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status",(const uint8_t *)"1",1,buf);
+        strcpy(buf,packetBaseJson(msgBuf,"10027",1));
     }
     else
     {
-        //包括没有该条记录和其它错误
-        result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status",(const uint8_t *)"0",1,buf);
+        strcpy(buf,packetBaseJson(msgBuf,"10027",0));
     }  
 
-    if(result != NO_ERR)
-    {
-        return result;
-    }
 
     len = strlen((const char*)buf);
 
@@ -431,7 +403,12 @@ SYSERRORCODE_E AddCardNo ( uint8_t* msgBuf )
 //    sprintf(userData.cardNo,"%08s",cardNo);
     log_d("cardNo = %s,len = %d\r\n",cardNo,strlen((const char*)cardNo));
 
-    log_d("=================================\r\n");
+    memset(buf,0x00,sizeof(buf));
+    strcpy((char *)buf,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerType",1));
+    userData.ownerType = atoi((const char*)buf);
+    log_d("tempUserData.ownerType = %d\r\n",userData.ownerType);    
+
+
     //读取当前用户信息
     ret  = readUserData(userData.userId,USER_MODE,&userData);
     
@@ -455,30 +432,18 @@ SYSERRORCODE_E AddCardNo ( uint8_t* msgBuf )
         ret = writeUserData(&userData,CARD_MODE);  
     }
 
-    if(ret == 0)
+    if(ret ==0)
     {
-        //影响服务器
-        result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status","1",1,buf);
-        result = modifyJsonItem((const uint8_t *)buf,(const uint8_t *)"reason","success",1,buf);
+        strcpy(buf,packetBaseJson(msgBuf,"10004",1));
     }
     else
     {
-        //影响服务器
-        result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status","0",1,buf);
-        result = modifyJsonItem((const uint8_t *)buf,(const uint8_t *)"reason","add error",1,buf);
-    }
-
-    
-    if(result != NO_ERR)
-    {
-        return result;
-    }
+        strcpy(buf,packetBaseJson(msgBuf,"10004",0));
+    }  
     
     len = strlen((const char*)buf);
     
-    mqttSendData(buf,len); 
-
- 
+    mqttSendData(buf,len);  
   
 	return result;
 }
@@ -529,10 +494,8 @@ SYSERRORCODE_E DelCardNo ( uint8_t* msgBuf )
 
     cardArray = GetCardArray ((const uint8_t *)msgBuf,(const uint8_t *)"cardNo",&num);
     
-    log_d("array num =%d\r\n",num); 
-    
-    //删除USERID
-    //wRet = delUserData(userId,USER_MODE);
+    log_d("array num =%d\r\n",num);    
+
     
     //删除CARDNO
     for(i=0; i<num;i++)
@@ -545,46 +508,24 @@ SYSERRORCODE_E DelCardNo ( uint8_t* msgBuf )
     //2.查询以卡号为ID的记录，并删除
     if(wRet ==0)
     {
-        //响应服务器
-        result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status",(const uint8_t *)"1",1,buf);
+        strcpy(buf,packetBaseJson(msgBuf,"10005",1));
     }
     else
     {
-        //包括没有该条记录和其它错误
-        result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status",(const uint8_t *)"0",1,buf);
+        strcpy(buf,packetBaseJson(msgBuf,"10005",0));
+        
     }  
-
-    if(result != NO_ERR)
-    {
-        for (i = 0; i < 20; i++)
-        {
-            my_free(cardArray[i]);
-        }  
-
-        return result;
-    }
 
     len = strlen((const char*)buf);
 
-    mqttSendData(buf,len);    
-
-    log_d("=================================\r\n");
-    
-//    memset(&userData,0x00,sizeof(userData));
-//    rRet = readUserData(userId,USER_MODE,&userData);
-//    log_d("ret = %d\r\n",rRet);    
-//    log_d("userData.cardState = %d\r\n",userData.cardState);    
-//    log_d("userData.userState = %d\r\n",userData.userState);
-//    log_d("userData.cardNo = %s\r\n",userData.cardNo);
-//    log_d("userData.userId = %s\r\n",userData.userId);
-//    log_d("userData.accessFloor = %s\r\n",userData.accessFloor);
-//    log_d("userData.defaultFloor = %d\r\n",userData.defaultFloor);
-//    log_d("userData.startTime = %s\r\n",userData.startTime);
+    mqttSendData(buf,len);   
 
     for (i = 0; i < 20; i++)
     {
         my_free(cardArray[i]);
-    }   
+    }  
+
+    my_free(cardArray);
     
     return result;
 }
@@ -603,10 +544,11 @@ SYSERRORCODE_E UpgradeDev ( uint8_t* msgBuf )
     saveUpgradeData(msgBuf);
 
     //1.保存URL
-    strcpy((char *)tmpUrl,(const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"softwareUrl",1));
+    strcpy((char *)tmpUrl,(const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"url",1));
     log_d("tmpUrl = %s\r\n",tmpUrl);
     
-    ef_set_env("url", (const char*)GetJsonItem((const uint8_t *)tmpUrl,(const uint8_t *)"picUrl",0)); 
+    
+    ef_set_env("url",tmpUrl); 
 
     //2.设置升级状态为待升级状态
     ef_set_env("up_status", "101700"); 
@@ -985,7 +927,7 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     memset(tmp,0x00,sizeof(tmp));
     strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerType",1));
     tempUserData.ownerType = atoi((const char*)tmp);
-    log_d("tempUserData.defaultFloor = %d\r\n",tempUserData.ownerType);
+    log_d("tempUserData.ownerType = %d\r\n",tempUserData.ownerType);
 
     //4.保存默认楼层
     memset(tmp,0x00,sizeof(tmp));
@@ -1196,20 +1138,20 @@ static SYSERRORCODE_E PCOptDev ( uint8_t* msgBuf )
     mqttSendData(buf,len); 
 
     
-log_d("===============CARD_MODE==================\r\n");
-TestFlash(CARD_MODE);
+//log_d("===============CARD_MODE==================\r\n");
+//TestFlash(CARD_MODE);
 
 
-log_d("===============USER_MODE==================\r\n");
-TestFlash(USER_MODE);
+//log_d("===============USER_MODE==================\r\n");
+//TestFlash(USER_MODE);
 
 
-log_d("===============CARD_DEL_MODE==================\r\n");
-TestFlash(CARD_DEL_MODE);
+//log_d("===============CARD_DEL_MODE==================\r\n");
+//TestFlash(CARD_DEL_MODE);
 
 
-log_d("===============USER_DEL_MODE==================\r\n");
-TestFlash(USER_DEL_MODE);
+//log_d("===============USER_DEL_MODE==================\r\n");
+//TestFlash(USER_DEL_MODE);
     
     return result;
 
@@ -1229,15 +1171,10 @@ static SYSERRORCODE_E ClearUserInof ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
 
-    result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status",(const uint8_t *)"1",1,buf);
-
-    if(result != NO_ERR)
-    {
-        return result;
-    }
-
+    strcpy(buf,packetBaseJson(msgBuf,"10003",1));
+    
     len = strlen((const char*)buf);
-
+    
     log_d("ClearUserInof len = %d,buf = %s\r\n",len,buf);
 
     mqttSendData(buf,len);

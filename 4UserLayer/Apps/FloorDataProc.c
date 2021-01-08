@@ -169,52 +169,52 @@ SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf)
     if(floor > 0 && floor<=8)
     {
         eBuf->data[0].devSn = 1;
-        eBuf->data[0].value = setbit(0,(floor-1)*2);        
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-1)*2+1);
+        eBuf->data[0].value = setbit(0,(floor-1)*2);   //第一位权限    
+        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-1)*2+1);//第二位按键
         log_d("send desc floor = %d,%d\r\n",eBuf->data[0].value,eBuf->data[0].devSn);  
         
     }
     else if(floor >=9 && floor<=16)
     {
-        eBuf->data[0].devSn = 2;
-        eBuf->data[0].value = setbit(0,(floor-9)*2); 
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-9)*2+1);
+        eBuf->data[1].devSn = 2;
+        eBuf->data[1].value = setbit(0,(floor-9)*2); 
+        eBuf->data[1].value = setbit(eBuf->data[1].value,(floor-9)*2+1);
     }
     else if(floor >=17 && floor<=24)
     {
-        eBuf->data[0].devSn = 3;
-        eBuf->data[0].value = setbit(0,(floor-17)*2);  
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-17)*2+1);        
+        eBuf->data[2].devSn = 3;
+        eBuf->data[2].value = setbit(0,(floor-17)*2);  
+        eBuf->data[2].value = setbit(eBuf->data[2].value,(floor-17)*2+1);        
     }
     else if(floor >=25 && floor<=32)
     {
-        eBuf->data[0].devSn = 4;
-        eBuf->data[0].value = setbit(0,(floor-25)*2);    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-25)*2+1);        
+        eBuf->data[3].devSn = 4;
+        eBuf->data[3].value = setbit(0,(floor-25)*2);    
+        eBuf->data[3].value = setbit(eBuf->data[3].value,(floor-25)*2+1);        
     }        
     else if(floor >=33 && floor<=40)
     {
-        eBuf->data[0].devSn = 5;
-        eBuf->data[0].value = setbit(0,(floor-33)*2);    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-33)*2+1);        
+        eBuf->data[4].devSn = 5;
+        eBuf->data[4].value = setbit(0,(floor-33)*2);    
+        eBuf->data[4].value = setbit(eBuf->data[4].value,(floor-33)*2+1);        
     }
     else if(floor >=41 && floor<=48)
     {
-        eBuf->data[0].devSn = 6;
-        eBuf->data[0].value = setbit(0,(floor-41)*2);    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-41)*2+1);        
+        eBuf->data[5].devSn = 6;
+        eBuf->data[5].value = setbit(0,(floor-41)*2);    
+        eBuf->data[5].value = setbit(eBuf->data[5].value,(floor-41)*2+1);        
     }
     else if(floor >=49 && floor<=56)
     {
-        eBuf->data[0].devSn = 7;
-        eBuf->data[0].value = setbit(0,(floor-49)*2);    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-49)*2+1);        
+        eBuf->data[6].devSn = 7;
+        eBuf->data[6].value = setbit(0,(floor-49)*2);    
+        eBuf->data[6].value = setbit(eBuf->data[6].value,(floor-49)*2+1);        
     } 
     else if(floor >=57 && floor<=64)
     {
-        eBuf->data[0].devSn = 8;
-        eBuf->data[0].value = setbit(0,(floor-57)*2);    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-57)*2+1);        
+        eBuf->data[7].devSn = 8;
+        eBuf->data[7].value = setbit(0,(floor-57)*2);    
+        eBuf->data[7].value = setbit(eBuf->data[7].value,(floor-57)*2+1);        
     }     
     return NO_ERR;
 }
@@ -353,45 +353,45 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
         }
         else if(curFloor >=9 && curFloor<=16)
         {
-            eBuf->data[1].devSn  = 1;
+            eBuf->data[1].devSn  = 2;
             eBuf->data[1].value = setbit(eBuf->data[1].value,(curFloor-9)*2);
 //            eBuf->data[1].value = setbit(eBuf->data[1].value,(curFloor-1)*2+1);
         }
         else if(curFloor >=17 && curFloor<=24)
         {
-            eBuf->data[2].devSn  = 1;
+            eBuf->data[2].devSn  = 3;
             eBuf->data[2].value = setbit(eBuf->data[2].value,(curFloor-17)*2);
 //            eBuf->data[2].value = setbit(eBuf->data[2].value,(curFloor-1)*2+1);
         }
         
         else if(curFloor >=25 && curFloor<=32)
         {
-            eBuf->data[3].devSn  = 1;
+            eBuf->data[3].devSn  = 4;
             eBuf->data[3].value = setbit(eBuf->data[3].value,(curFloor-25)*2);
 //            eBuf->data[3].value = setbit(eBuf->data[3].value,(curFloor-1)*2+1);
         }
         else if(curFloor >=33 && curFloor<=40)
         {
-            eBuf->data[4].devSn  = 1;
+            eBuf->data[4].devSn  = 5;
             eBuf->data[4].value = setbit(eBuf->data[4].value,(curFloor-33)*2);
 //            eBuf->data[4].value = setbit(eBuf->data[4].value,(curFloor-1)*2+1);
         } 
         if(curFloor > 41 && curFloor<=48)
         {
-            eBuf->data[5].devSn  = 1;
+            eBuf->data[5].devSn  = 6;
             eBuf->data[5].value = setbit(eBuf->data[5].value,(curFloor-41)*2);
 //            eBuf->data[5].value = setbit(eBuf->data[5].value,(curFloor-1)*2+1);
             
         }
         else if(curFloor >=49 && curFloor<=56)
         {
-            eBuf->data[6].devSn  = 1;
+            eBuf->data[6].devSn  = 7;
             eBuf->data[6].value = setbit(eBuf->data[6].value,(curFloor-49)*2);
 //            eBuf->data[6].value = setbit(eBuf->data[6].value,(curFloor-1)*2+1);
         }
         else if(curFloor >=57 && curFloor<=64)
         {
-            eBuf->data[7].devSn  = 1;
+            eBuf->data[7].devSn  = 8;
             eBuf->data[7].value = setbit(eBuf->data[7].value,(curFloor-57)*2);
 //            eBuf->data[7].value = setbit(eBuf->data[7].value,(curFloor-1)*2+1);
         }
