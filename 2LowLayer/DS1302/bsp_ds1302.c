@@ -219,7 +219,6 @@ char* time_to_timestamp(void)
     stm.tm_sec = BCDToInt(read_1302 ( read[0] ));  
     
     sprintf(ret,"%d",mktime(&stm));
-//    printf("time_to_timestamp = %s\r\n",ret);
     return ret;
 }
 

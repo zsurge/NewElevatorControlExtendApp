@@ -194,7 +194,7 @@ uint8_t* GetJsonItem ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t isSub
 		else if ( json_item->type == cJSON_Number )
 		{
 			sprintf ( (char*)value,"%d",json_item->valueint );
-//			log_d ( "json_item =  %s\r\n",value);
+			log_d ( "json_item =  %s\r\n",value);
 		}
 		else if( json_item->type == cJSON_Array )
 		{

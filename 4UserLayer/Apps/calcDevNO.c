@@ -192,7 +192,6 @@ unsigned char findDev(unsigned char *str,unsigned char dataFormat)
 }
 
 
-
 char *parseAccessFloor(char *str)
 {
     static char result[64] = {0};;

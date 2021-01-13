@@ -280,14 +280,13 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 {
 
 	SYSERRORCODE_E result = NO_ERR;
-	cJSON* root,*dataObj;
+	cJSON* root;
 	char* tmpBuf;
 	char tmpTime[32] = {0};
 
 	root = cJSON_CreateObject();
-	dataObj = cJSON_CreateObject();
 
-	if ( !root && !dataObj )
+	if ( !root )
 	{
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
 		cJSON_Delete ( root );
@@ -298,28 +297,21 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 	cJSON_AddStringToObject ( root, "deviceCode", gDevBaseParam.deviceCode.deviceSn );
 	log_d ( "deviceCode = %s\r\n",gDevBaseParam.deviceCode.deviceSn );
 
-	cJSON_AddItemToObject ( root, "data", dataObj );
 
-	cJSON_AddStringToObject ( root, "commandCode","3007" );
-	cJSON_AddStringToObject ( dataObj, "cardNo", ( const char* ) localUserData->cardNo );
-	cJSON_AddNumberToObject ( dataObj, "callType",localUserData->authMode );
-	cJSON_AddNumberToObject ( dataObj, "status", ON_LINE );
+	cJSON_AddStringToObject ( root, "commandCode","10024" );
+	cJSON_AddStringToObject ( root, "cardNo", ( const char* ) localUserData->cardNo );	
+	cJSON_AddNumberToObject ( root, "callType",localUserData->authMode );
+	cJSON_AddNumberToObject ( root, "status", ON_LINE );
+	
 	strcpy ( tmpTime, ( const char* ) bsp_ds1302_readtime() );
-	cJSON_AddStringToObject ( dataObj, "callElevatorTime",tmpTime );
-	cJSON_AddStringToObject ( dataObj, "timeStamp", ( const char* ) localUserData->startTime );
-	cJSON_AddStringToObject ( dataObj, "ownerId", ( const char* ) localUserData->userId );
-
-	if ( localUserData->authMode == 7 )
-	{
-		cJSON_AddNumberToObject ( dataObj, "callState",CALL_OK );
-	}
-	else
-	{
-		cJSON_AddNumberToObject ( dataObj, "type",CALL_OK );
-	}
-
-
+	log_d("tmpTime = %s\r\n",tmpTime);
+	cJSON_AddStringToObject ( root, "callElevatorTime",tmpTime );
+	cJSON_AddStringToObject ( root, "timeStamp", ( const char* ) localUserData->startTime );
+	cJSON_AddNumberToObject ( root, "ownerId", atoi(localUserData->userId) );
+	cJSON_AddNumberToObject ( root, "ownerType",localUserData->ownerType );
+	log_d("localUserData->ownerType = %d\r\n",localUserData->ownerType);
 	tmpBuf = cJSON_PrintUnformatted ( root );
+
 
 	if ( !tmpBuf )
 	{
@@ -400,6 +392,14 @@ uint8_t parseQrCode ( uint8_t* jsonBuff,USERDATA_STRU* qrCodeInfo )
 		log_d ( "qrCodeInfo->qrID= %s,value = %d\r\n",qrCodeInfo->userId,atoi ( qrCodeInfo->userId ) );
 	}
 
+
+	//获取用户类型2021.01.09
+	tmpArray = NULL;
+	tmpArray = cJSON_GetObjectItem ( root, "ownerType" );
+	if ( tmpArray )
+	{
+	    qrCodeInfo->ownerType = tmpArray->valueint;
+	}
 
 	tmpArray = NULL;
 	tmpArray = cJSON_GetObjectItem ( root, "f1" );

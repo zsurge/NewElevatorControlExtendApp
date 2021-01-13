@@ -115,7 +115,7 @@ static void vTaskDataProcess(void *pvParameters)
             case AUTH_MODE_CARD:            
                 //读卡 CARD 230000000089E1E35D,23         
                 memcpy(cardNo,ptMsg->data,CARD_NO_LEN);
-                log_d("key = %s\r\n",cardNo);     
+                log_d("key = %s\r\n",cardNo); 
                 
                 isFind = readUserData(cardNo,CARD_MODE,&localUserData);   
 
@@ -128,8 +128,10 @@ static void vTaskDataProcess(void *pvParameters)
                    break;
                 } 
                 
+                localUserData.authMode = ptMsg->authMode;
                 memcpy(localUserData.timeStamp,time_to_timestamp(),TIMESTAMP_LEN);
-                log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp);  
+                log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp); 
+
                 
                 //1.打包
                 packetPayload(&localUserData,jsonBuf); 
@@ -145,33 +147,20 @@ static void vTaskDataProcess(void *pvParameters)
                 {
                     log_d("invalid floor\r\n");
                     break;  //无权限   
-                }    
-
-                //单层权限，并且在第2个设备或以后
-//                if(devSendData.data[0].devSn > 1)
-//                {
-//                    sendElevator->devSn = devSendData.data[0].devSn;
-//                    sendElevator->value = devSendData.data[0].value;
-//                    log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
-//                    //发送数据到队列 
-//                    sendQueueToDev(sendElevator);                       
-//                }
-//                else
-//                {
-                    //4.发送电梯数据到队列
-                    for(i=0;i<8;i++)
-                    {   
-                        if(devSendData.data[i].devSn >= 1)
-                        {
-                            sendElevator->devSn = devSendData.data[i].devSn;
-                            sendElevator->value = devSendData.data[i].value;
-                            log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
-                           //发送数据到队列 
-                           sendQueueToDev(sendElevator);                
-                        }
-                    }     
-//                }
-
+                } 
+                
+                //4.发送电梯数据到队列
+                for(i=0;i<8;i++)
+                {   
+                    if(devSendData.data[i].devSn >= 1)
+                    {
+                        sendElevator->devSn = devSendData.data[i].devSn;
+                        sendElevator->value = devSendData.data[i].value;
+                        log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
+                       //发送数据到队列 
+                       sendQueueToDev(sendElevator);                
+                    }
+                } 
                 break;
             case AUTH_MODE_QR:
                 isFind = parseQrCode(ptMsg->data,&localUserData);
@@ -181,7 +170,7 @@ static void vTaskDataProcess(void *pvParameters)
                     break ;  //无权限
                 }
                 
-                localUserData.authMode = ptMsg->authMode; 
+                localUserData.authMode = ptMsg->authMode;
                 
                 //1.打包
                 packetPayload(&localUserData,jsonBuf); 
@@ -222,12 +211,16 @@ static void vTaskDataProcess(void *pvParameters)
                     log_d("invalid floor\r\n");
                     break;
                 }
-                sendElevator->devSn = devSendData.data[0].devSn;
-                sendElevator->value = devSendData.data[0].value;
-                
-                log_d("send desc floor = %d,%d\r\n",sendElevator->value,sendElevator->devSn);  
-                
-                sendQueueToDev(sendElevator);
+                for(i=0;i<8;i++)
+                {   
+                    if(devSendData.data[i].devSn >= 1)
+                    {
+                        sendElevator->devSn = devSendData.data[i].devSn;
+                        sendElevator->value = devSendData.data[i].value;
+                       //发送数据到队列 
+                       sendQueueToDev(sendElevator);  
+                    }
+                }         
                 break;
             case AUTH_MODE_UNBIND:
                 //直接发送停用设备指令

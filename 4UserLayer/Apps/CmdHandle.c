@@ -92,6 +92,7 @@ static SYSERRORCODE_E SetLocalSn( uint8_t* msgBuf ); //设置本地SN，MQTT用
 static SYSERRORCODE_E DelCard( uint8_t* msgBuf ); //删除卡号
 static SYSERRORCODE_E DelUserId( uint8_t* msgBuf ); //删除用户
 static SYSERRORCODE_E getRemoteTime ( uint8_t* msgBuf );//获取远程服务器时间
+static SYSERRORCODE_E RemoteResetDev ( uint8_t* msgBuf );//获取远程服务器时间
 
 //static SYSERRORCODE_E ReturnDefault ( uint8_t* msgBuf ); //返回默认消息
 
@@ -109,11 +110,12 @@ const CMD_HANDLE_T CmdList[] =
 	{"201",  OpenDoor},
 	{"1006", AbnormalAlarm},
     {"10027", DelUserId},
-	{"10004", AddCardNo},
+//	{"10004", AddCardNo},
 	{"10005", DelCardNo},
 	{"1015", AddSingleUser},
 	{"10006", UpgradeDev},
 	{"1017", UpgradeAck},
+	{"10010", RemoteResetDev}, 
 	{"1024", SetJudgeMode},
 	{"1026", GetDevInfo},  
 	{"1027", DelCard},         
@@ -121,7 +123,7 @@ const CMD_HANDLE_T CmdList[] =
     {"3002", GetServerIp},
     {"10001", GetTemplateParam},
     {"10021", GetUserInfo},   
-    {"3005", RemoteOptDev},        
+    {"10046", RemoteOptDev},        
     {"10003", ClearUserInof},   
     {"10022", UnbindDev},  
     {"10023", PCOptDev},
@@ -561,6 +563,37 @@ SYSERRORCODE_E UpgradeDev ( uint8_t* msgBuf )
 }
 
 
+static SYSERRORCODE_E RemoteResetDev ( uint8_t* msgBuf )
+{
+	SYSERRORCODE_E result = NO_ERR;
+    uint16_t len = 0;
+    uint8_t buf[MQTT_TEMP_LEN] = {0};
+    
+    if(!msgBuf)
+    {
+        return STR_EMPTY_ERR;
+    }
+    
+    strcpy(buf,packetBaseJson(msgBuf,"10010",1));
+
+    if(buf == NULL)
+    {
+        return STR_EMPTY_ERR;
+    }
+    
+    len = strlen((const char*)buf);
+
+    log_d("RemoteResetDev = %d,buf = %s\r\n",len,buf);
+
+    mqttSendData(buf,len);    
+     
+    NVIC_SystemReset(); 
+    
+    return NO_ERR;
+
+}
+
+
 
 SYSERRORCODE_E getRemoteTime ( uint8_t* msgBuf )
 {
@@ -927,7 +960,8 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     memset(tmp,0x00,sizeof(tmp));
     strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerType",1));
     tempUserData.ownerType = atoi((const char*)tmp);
-    log_d("tempUserData.ownerType = %d\r\n",tempUserData.ownerType);
+    log_d("tempUserData.ownerType = %d,,,= %s\r\n",tempUserData.ownerType,tmp);
+    
 
     //4.保存默认楼层
     memset(tmp,0x00,sizeof(tmp));
@@ -1060,6 +1094,17 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
             }
         }   
 
+        memset(buf,0x00,sizeof(buf));
+        
+        if(strlen((const char*)tagFloor) == 0 && strlen((const char*)accessFloor)==0)
+        {
+            strcpy(buf,packetBaseJson(msgBuf,"10046",0));
+        }
+        else
+        {
+            strcpy(buf,packetBaseJson(msgBuf,"10046",1));
+        }  
+
          //发送目标楼层
          if(strlen((const char*)tagFloor) == 1) 
          {
@@ -1072,22 +1117,7 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
          {
             //这里需要发消息到消息队列，进行呼梯
             SendToQueue(accessFloor,strlen((const char*)accessFloor),AUTH_MODE_REMOTE);
-         }         
-
-
-        if(strlen((const char*)tagFloor) == 0 && strlen((const char*)accessFloor)==0)
-        {
-            result = modifyJsonItem(msgBuf,"status","0",1,buf);
-        }
-        else
-        {
-            result = modifyJsonItem(msgBuf,"status","1",1,buf);
-        }        
-
-        if(result != NO_ERR)
-        {
-            return result;
-        }      
+         }          
         
         len = strlen((const char*)buf);
 
