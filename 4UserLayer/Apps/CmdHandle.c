@@ -992,7 +992,11 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
         if(ret != 0)
         {   
             log_e("write user id error\r\n");
-            result = FLASH_W_ERR;
+            if(ret!=4)//add 2021.01.13 若是已有，也回复成功
+            {
+                result = FLASH_W_ERR;
+            }
+
         }        
     }   
     
@@ -1011,8 +1015,11 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
 
             if(ret != 0)
             {    
-                log_e("write card id error\r\n");            
-                result = FLASH_W_ERR;
+                log_e("write card id error\r\n"); 
+                if(ret!=4)//add 2021.01.13 若是已存在，也回复成功
+                {
+                    result = FLASH_W_ERR;
+                }
             }
 
         }

@@ -121,7 +121,7 @@ static void vTaskKey(void *pvParameters)
 //                    farm_test();
 
 //                    testSplit();
-//                    eraseUserDataAll();
+                    eraseUserDataAll();
 //                      ee_test();
 //			        
 					break;
