@@ -104,12 +104,7 @@ SYSERRORCODE_E packetToElevatorExtend(USERDATA_STRU *localUserData,ELEVATOR_BUFF
     log_d("1 value = %x,devsn=%d\r\n",devSendData->data[0].value,devSendData->data[0].devSn);
     log_d("2 value = %x,devsn=%d\r\n",devSendData->data[1].value,devSendData->data[1].devSn);
     log_d("3 value = %x,devsn=%d\r\n",devSendData->data[2].value,devSendData->data[2].devSn);
-    log_d("4 value = %x,devsn=%d\r\n",devSendData->data[3].value,devSendData->data[3].devSn);
-    log_d("1 value = %x,devsn=%d\r\n",devSendData->data[4].value,devSendData->data[4].devSn);
-    log_d("2 value = %x,devsn=%d\r\n",devSendData->data[5].value,devSendData->data[5].devSn);
-    log_d("3 value = %x,devsn=%d\r\n",devSendData->data[6].value,devSendData->data[6].devSn);
-    log_d("4 value = %x,devsn=%d\r\n",devSendData->data[7].value,devSendData->data[7].devSn);
-   
+    log_d("4 value = %x,devsn=%d\r\n",devSendData->data[3].value,devSendData->data[3].devSn);   
     
     return result;
 }
@@ -166,56 +161,33 @@ SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf)
 
     log_d("calc Single Floor = %d\r\n",floor);
 
-    if(floor > 0 && floor<=8)
+    if(floor > 0 && floor<=16)
     {
         eBuf->data[0].devSn = 1;
-        eBuf->data[0].value = setbit(0,(floor-1)*2);   //第一位权限    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-1)*2+1);//第二位按键
+        eBuf->data[0].value = setbit(0,floor-1);   //前16字节是权限，后16字节是按键    
+        eBuf->data[0].value = setbit(eBuf->data[0].value<<16UL,floor-1);
+        
         log_d("send desc floor = %d,%d\r\n",eBuf->data[0].value,eBuf->data[0].devSn);  
         
     }
-    else if(floor >=9 && floor<=16)
+    else if(floor >=17 && floor<=32)
     {
         eBuf->data[1].devSn = 2;
-        eBuf->data[1].value = setbit(0,(floor-9)*2); 
-        eBuf->data[1].value = setbit(eBuf->data[1].value,(floor-9)*2+1);
+        eBuf->data[1].value = setbit(0,floor-17); 
+        eBuf->data[1].value = setbit(eBuf->data[1].value<<16UL,floor-17);
     }
-    else if(floor >=17 && floor<=24)
+    else if(floor >=33 && floor<=48)
     {
         eBuf->data[2].devSn = 3;
-        eBuf->data[2].value = setbit(0,(floor-17)*2);  
-        eBuf->data[2].value = setbit(eBuf->data[2].value,(floor-17)*2+1);        
+        eBuf->data[2].value = setbit(0,floor-33); 
+        eBuf->data[2].value = setbit(eBuf->data[2].value<<16UL,floor-33);    
     }
-    else if(floor >=25 && floor<=32)
+    else if(floor >=49 && floor<=64)
     {
         eBuf->data[3].devSn = 4;
-        eBuf->data[3].value = setbit(0,(floor-25)*2);    
-        eBuf->data[3].value = setbit(eBuf->data[3].value,(floor-25)*2+1);        
-    }        
-    else if(floor >=33 && floor<=40)
-    {
-        eBuf->data[4].devSn = 5;
-        eBuf->data[4].value = setbit(0,(floor-33)*2);    
-        eBuf->data[4].value = setbit(eBuf->data[4].value,(floor-33)*2+1);        
-    }
-    else if(floor >=41 && floor<=48)
-    {
-        eBuf->data[5].devSn = 6;
-        eBuf->data[5].value = setbit(0,(floor-41)*2);    
-        eBuf->data[5].value = setbit(eBuf->data[5].value,(floor-41)*2+1);        
-    }
-    else if(floor >=49 && floor<=56)
-    {
-        eBuf->data[6].devSn = 7;
-        eBuf->data[6].value = setbit(0,(floor-49)*2);    
-        eBuf->data[6].value = setbit(eBuf->data[6].value,(floor-49)*2+1);        
+        eBuf->data[3].value = setbit(0,floor-49); 
+        eBuf->data[3].value = setbit(eBuf->data[3].value<<16UL,floor-49);    
     } 
-    else if(floor >=57 && floor<=64)
-    {
-        eBuf->data[7].devSn = 8;
-        eBuf->data[7].value = setbit(0,(floor-57)*2);    
-        eBuf->data[7].value = setbit(eBuf->data[7].value,(floor-57)*2+1);        
-    }     
     return NO_ERR;
 }
 
@@ -307,20 +279,6 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
     //按目前需求，超过1层权限，就按所有楼层处理  
     for(i=0;i<num;i++)
     {
-
-//        if(floorBuf[i] == 253)
-//        {
-//            curFloor = 1;
-//        }
-//        else if(floorBuf[i] == 254)
-//        {
-//            curFloor = 2;
-//        }
-//        else if(floorBuf[i] == 255)
-//        {
-//            curFloor = 3;
-//        }
-
         if(floorBuf[i] > 200)
         {
             if(256-floorBuf[i] == offset)
@@ -342,59 +300,32 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
         }
 
         
-        log_d("calc  Multil Floor = %d\r\n",curFloor);
-        
-        if(curFloor > 0 && curFloor<=8)
+        log_d("calc  Multil Floor = %d\r\n",curFloor);        
+
+
+        if(curFloor > 0 && curFloor<=16)
         {
-            eBuf->data[0].devSn  = 1;
-            eBuf->data[0].value = setbit(eBuf->data[0].value,(curFloor-1)*2);
-//            eBuf->data[0].value = setbit(eBuf->data[0].value,(curFloor-1)*2+1);
+            eBuf->data[0].devSn = 1;
+            eBuf->data[0].value = setbit(eBuf->data[0].value<<16UL,curFloor-1);
+            
+            log_d("send desc floor = %d,%d\r\n",eBuf->data[0].value,eBuf->data[0].devSn);  
             
         }
-        else if(curFloor >=9 && curFloor<=16)
+        else if(curFloor >=17 && curFloor<=32)
         {
-            eBuf->data[1].devSn  = 2;
-            eBuf->data[1].value = setbit(eBuf->data[1].value,(curFloor-9)*2);
-//            eBuf->data[1].value = setbit(eBuf->data[1].value,(curFloor-1)*2+1);
+            eBuf->data[1].devSn = 2;
+            eBuf->data[1].value = setbit(eBuf->data[1].value<<16UL,curFloor-17);
         }
-        else if(curFloor >=17 && curFloor<=24)
+        else if(curFloor >=33 && curFloor<=48)
         {
-            eBuf->data[2].devSn  = 3;
-            eBuf->data[2].value = setbit(eBuf->data[2].value,(curFloor-17)*2);
-//            eBuf->data[2].value = setbit(eBuf->data[2].value,(curFloor-1)*2+1);
+            eBuf->data[2].devSn = 3;
+            eBuf->data[2].value = setbit(eBuf->data[2].value<<16UL,curFloor-33);    
         }
-        
-        else if(curFloor >=25 && curFloor<=32)
+        else if(curFloor >=49 && curFloor<=64)
         {
-            eBuf->data[3].devSn  = 4;
-            eBuf->data[3].value = setbit(eBuf->data[3].value,(curFloor-25)*2);
-//            eBuf->data[3].value = setbit(eBuf->data[3].value,(curFloor-1)*2+1);
-        }
-        else if(curFloor >=33 && curFloor<=40)
-        {
-            eBuf->data[4].devSn  = 5;
-            eBuf->data[4].value = setbit(eBuf->data[4].value,(curFloor-33)*2);
-//            eBuf->data[4].value = setbit(eBuf->data[4].value,(curFloor-1)*2+1);
-        } 
-        if(curFloor > 41 && curFloor<=48)
-        {
-            eBuf->data[5].devSn  = 6;
-            eBuf->data[5].value = setbit(eBuf->data[5].value,(curFloor-41)*2);
-//            eBuf->data[5].value = setbit(eBuf->data[5].value,(curFloor-1)*2+1);
-            
-        }
-        else if(curFloor >=49 && curFloor<=56)
-        {
-            eBuf->data[6].devSn  = 7;
-            eBuf->data[6].value = setbit(eBuf->data[6].value,(curFloor-49)*2);
-//            eBuf->data[6].value = setbit(eBuf->data[6].value,(curFloor-1)*2+1);
-        }
-        else if(curFloor >=57 && curFloor<=64)
-        {
-            eBuf->data[7].devSn  = 8;
-            eBuf->data[7].value = setbit(eBuf->data[7].value,(curFloor-57)*2);
-//            eBuf->data[7].value = setbit(eBuf->data[7].value,(curFloor-1)*2+1);
-        }
+            eBuf->data[3].devSn = 4;
+            eBuf->data[3].value = setbit(eBuf->data[3].value<<16UL,curFloor-49);    
+        }        
         
     }
    
@@ -403,10 +334,7 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
     log_d("2 value = %x,devsn=%d\r\n",eBuf->data[1].value,eBuf->data[1].devSn);
     log_d("3 value = %x,devsn=%d\r\n",eBuf->data[2].value,eBuf->data[2].devSn);
     log_d("4 value = %x,devsn=%d\r\n",eBuf->data[3].value,eBuf->data[3].devSn);
-    log_d("5 value = %x,devsn=%d\r\n",eBuf->data[4].value,eBuf->data[4].devSn);
-    log_d("6 value = %x,devsn=%d\r\n",eBuf->data[5].value,eBuf->data[5].devSn);
-    log_d("7 value = %x,devsn=%d\r\n",eBuf->data[6].value,eBuf->data[6].devSn);
-    log_d("8 value = %x,devsn=%d\r\n",eBuf->data[7].value,eBuf->data[7].devSn);
+
 
     return NO_ERR;
 }

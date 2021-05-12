@@ -100,140 +100,132 @@ static void vTaskDataProcess(void *pvParameters)
         xReturn = xQueueReceive( xDataProcessQueue,    /* 消息队列的句柄 */
                                  (void *)&ptMsg,  /*这里获取的是结构体的地址 */
                                  xMaxBlockTime); /* 设置阻塞时间 */
-        if(pdTRUE != xReturn)
+        if(pdTRUE == xReturn)
         {
-            //消息接收成功，发送接收到的消息
-//            packetSendBuf(ptMsg); 
-//            log_d("exec packetSendBuf end\r\n");
+            switch (ptMsg->authMode)
+            {
+                case AUTH_MODE_CARD:            
+                    //读卡 CARD 230000000089E1E35D,23         
+                    memcpy(cardNo,ptMsg->data,CARD_NO_LEN);
+                    log_d("key = %s\r\n",cardNo); 
+                    
+                    isFind = readUserData(cardNo,CARD_MODE,&localUserData);   
 
-            continue;
-        }
-        
-        
-        switch (ptMsg->authMode)
-        {
-            case AUTH_MODE_CARD:            
-                //读卡 CARD 230000000089E1E35D,23         
-                memcpy(cardNo,ptMsg->data,CARD_NO_LEN);
-                log_d("key = %s\r\n",cardNo); 
-                
-                isFind = readUserData(cardNo,CARD_MODE,&localUserData);   
+                    log_d("isFind = %d,rUserData.cardState = %d\r\n",isFind,localUserData.cardState);
 
-                log_d("isFind = %d,rUserData.cardState = %d\r\n",isFind,localUserData.cardState);
-
-                if(localUserData.cardState != CARD_VALID || isFind != 0)
-                {
-                    //未找到记录，无权限
-                    log_e("not find record\r\n");
-                   break;
-                } 
-                
-                localUserData.authMode = ptMsg->authMode;
-                memcpy(localUserData.timeStamp,time_to_timestamp(),TIMESTAMP_LEN);
-                log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp); 
-
-                
-                //1.打包
-                packetPayload(&localUserData,jsonBuf); 
-                len = strlen((const char*)jsonBuf);
-                
-                //2.发给服务器
-                len = mqttSendData(jsonBuf,len);
-                log_d("send = %d\r\n",len);
-                
-                //3.计算电梯数据
-                ret = packetToElevatorExtend(&localUserData,&devSendData);
-                if(ret != NO_ERR)
-                {
-                    log_d("invalid floor\r\n");
-                    break;  //无权限   
-                } 
-                
-                //4.发送电梯数据到队列
-                for(i=0;i<8;i++)
-                {   
-                    if(devSendData.data[i].devSn >= 1)
+                    if(localUserData.cardState != CARD_VALID || isFind != 0)
                     {
-                        sendElevator->devSn = devSendData.data[i].devSn;
-                        sendElevator->value = devSendData.data[i].value;
-                        log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
-                       //发送数据到队列 
-                       sendQueueToDev(sendElevator);                
-                    }
-                } 
-                break;
-            case AUTH_MODE_QR:
-                isFind = parseQrCode(ptMsg->data,&localUserData);
-                if(isFind != NO_ERR)
-                {
-                    log_d("not find record\r\n");
-                    break ;  //无权限
-                }
-                
-                localUserData.authMode = ptMsg->authMode;
-                
-                //1.打包
-                packetPayload(&localUserData,jsonBuf); 
-                len = strlen((const char*)jsonBuf);
+                        //未找到记录，无权限
+                        log_e("not find record\r\n");
+                       break;
+                    } 
+                    
+                    localUserData.authMode = ptMsg->authMode;
+                    memcpy(localUserData.timeStamp,time_to_timestamp(),TIMESTAMP_LEN);
+                    log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp); 
 
-                //2.发给服务器
-                len = mqttSendData(jsonBuf,len);
-                log_d("send = %d\r\n",len);  
-
-                //3.计算电梯数据
-                ret = packetToElevatorExtend(&localUserData,&devSendData);
-                if(ret != NO_ERR)
-                {
-                    log_d("invalid floor\r\n");
-                    break;  //无权限   
-                }
-
-                //4.发送电梯数据到队列
-                for(i=0;i<8;i++)
-                {   
-                    if(devSendData.data[i].devSn >= 1)
+                    
+                    //1.打包
+                    packetPayload(&localUserData,jsonBuf); 
+                    len = strlen((const char*)jsonBuf);
+                    
+                    //2.发给服务器
+                    len = mqttSendData(jsonBuf,len);
+                    log_d("send = %d\r\n",len);
+                    
+                    //3.计算电梯数据
+                    ret = packetToElevatorExtend(&localUserData,&devSendData);
+                    if(ret != NO_ERR)
                     {
-                        sendElevator->devSn = devSendData.data[i].devSn;
-                        sendElevator->value = devSendData.data[i].value;
-                       //发送数据到队列 
-                       sendQueueToDev(sendElevator);  
-                    }
-                }                 
-                break;
-            case AUTH_MODE_REMOTE:
-                //直接发送目标楼层
-                log_d("send desc floor = %d,%d\r\n",ptMsg->data[0],ptMsg->dataLen);  
-                
-                localUserData.authMode = ptMsg->authMode; 
-                ret = calcSingleFloor(ptMsg->data[0],&devSendData);
-                if(ret != NO_ERR)
-                {
-                    log_d("invalid floor\r\n");
+                        log_d("invalid floor\r\n");
+                        break;  //无权限   
+                    } 
+                    
+                    //4.发送电梯数据到队列
+                    for(i=0;i<8;i++)
+                    {   
+                        if(devSendData.data[i].devSn >= 1)
+                        {
+                            sendElevator->devSn = devSendData.data[i].devSn;
+                            sendElevator->value = devSendData.data[i].value;
+                            log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
+                           //发送数据到队列 
+                           sendQueueToDev(sendElevator);                
+                        }
+                    } 
                     break;
-                }
-                for(i=0;i<8;i++)
-                {   
-                    if(devSendData.data[i].devSn >= 1)
+                case AUTH_MODE_QR:
+                    isFind = parseQrCode(ptMsg->data,&localUserData);
+                    if(isFind != NO_ERR)
                     {
-                        sendElevator->devSn = devSendData.data[i].devSn;
-                        sendElevator->value = devSendData.data[i].value;
-                       //发送数据到队列 
-                       sendQueueToDev(sendElevator);  
+                        log_d("not find record\r\n");
+                        break ;  //无权限
                     }
-                }         
-                break;
-            case AUTH_MODE_UNBIND:
-                //直接发送停用设备指令
-                xQueueReset(xDataProcessQueue); 
-                log_d("send AUTH_MODE_UNBIND floor\r\n");
-                break;     
-            case AUTH_MODE_BIND:
-                //直接发送启动设置指令
-                xQueueReset(xDataProcessQueue); 
-                log_d("send AUTH_MODE_BIND floor\r\n");
-                break;                
-        }
-        
+                    
+                    localUserData.authMode = ptMsg->authMode;
+                    
+                    //1.打包
+                    packetPayload(&localUserData,jsonBuf); 
+                    len = strlen((const char*)jsonBuf);
+
+                    //2.发给服务器
+                    len = mqttSendData(jsonBuf,len);
+                    log_d("send = %d\r\n",len);  
+
+                    //3.计算电梯数据
+                    ret = packetToElevatorExtend(&localUserData,&devSendData);
+                    if(ret != NO_ERR)
+                    {
+                        log_d("invalid floor\r\n");
+                        break;  //无权限   
+                    }
+
+                    //4.发送电梯数据到队列
+                    for(i=0;i<8;i++)
+                    {   
+                        if(devSendData.data[i].devSn >= 1)
+                        {
+                            sendElevator->devSn = devSendData.data[i].devSn;
+                            sendElevator->value = devSendData.data[i].value;
+                           //发送数据到队列 
+                           sendQueueToDev(sendElevator);  
+                        }
+                    }                 
+                    break;
+                case AUTH_MODE_REMOTE:
+                    //直接发送目标楼层
+                    log_d("send desc floor = %d,%d\r\n",ptMsg->data[0],ptMsg->dataLen);  
+                    
+                    localUserData.authMode = ptMsg->authMode; 
+                    ret = calcSingleFloor(ptMsg->data[0],&devSendData);
+                    if(ret != NO_ERR)
+                    {
+                        log_d("invalid floor\r\n");
+                        break;
+                    }
+                    for(i=0;i<8;i++)
+                    {   
+                        if(devSendData.data[i].devSn >= 1)
+                        {
+                            sendElevator->devSn = devSendData.data[i].devSn;
+                            sendElevator->value = devSendData.data[i].value;
+                           //发送数据到队列 
+                           sendQueueToDev(sendElevator);  
+                        }
+                    }         
+                    break;
+                case AUTH_MODE_UNBIND:
+                    //直接发送停用设备指令
+                    xQueueReset(xDataProcessQueue); 
+                    log_d("send AUTH_MODE_UNBIND floor\r\n");
+                    break;     
+                case AUTH_MODE_BIND:
+                    //直接发送启动设置指令
+                    xQueueReset(xDataProcessQueue); 
+                    log_d("send AUTH_MODE_BIND floor\r\n");
+                    break;                
+            }
+        }    
         
         /* 发送事件标志，表示任务正常运行 */        
         xEventGroupSetBits(xCreatedEventGroup, TASK_BIT_6);  
