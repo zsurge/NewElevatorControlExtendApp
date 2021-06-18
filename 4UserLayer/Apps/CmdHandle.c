@@ -941,20 +941,22 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     
     //3.保存楼层权限
     memset(tmp,0x00,sizeof(tmp));
-    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"baseFloor",1));
+    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"floorPower",1));
     split((char *)tmp,",",multipleFloor,&multipleFloorNum); //调用函数进行分割 
 
     if(multipleFloorNum >= 1)
     {
         for(len=0;len<multipleFloorNum;len++)
-        {
+        {            
             tempUserData.accessFloor[len] = atoi(multipleFloor[len]);
+            log_d("=====asscessFloor[%d] = %d=====\r\n",len,tempUserData.accessFloor[len]);
         }
     }
     else
     {          
         log_d("tempUserData.accessFloor error!!!!!!!!!!!!!!!\r\n");
     }
+ 
 
     //7.保存用户类型
     memset(tmp,0x00,sizeof(tmp));
@@ -965,7 +967,7 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
 
     //4.保存默认楼层
     memset(tmp,0x00,sizeof(tmp));
-    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"floorPower",1));
+    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"baseFloor",1));
     tempUserData.defaultFloor = atoi((const char*)tmp);
     log_d("tempUserData.defaultFloor = %d\r\n",tempUserData.defaultFloor);
 

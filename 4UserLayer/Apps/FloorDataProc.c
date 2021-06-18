@@ -79,7 +79,7 @@ SYSERRORCODE_E packetToElevatorExtend(USERDATA_STRU *localUserData,ELEVATOR_BUFF
     
     if(num > 1)//多层权限，手动
     {
-        result = calcMultilFloor(authLayer,num,devSendData);
+        result = calcMultilFloor((uint8_t *)authLayer,num,devSendData);
     }
     else    //单层权限，直接呼默认权限楼层，自动
     {
@@ -170,8 +170,7 @@ SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf)
     {
         eBuf->data[0].devSn = 1;
         eBuf->data[0].value = setbit(0,(floor-1)*2);   //第一位权限    
-        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-1)*2+1);//第二位按键
-        log_d("send desc floor = %d,%d\r\n",eBuf->data[0].value,eBuf->data[0].devSn);  
+        eBuf->data[0].value = setbit(eBuf->data[0].value,(floor-1)*2+1);//第二位按键        
         
     }
     else if(floor >=9 && floor<=16)
@@ -299,7 +298,7 @@ SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf)
 SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU *eBuf)
 {
     uint8_t i = 0;
-    uint8_t tmpFloor = 0;
+    
     uint8_t curFloor = 0;
     //需补偿的楼层
     uint8_t offset = ((bsp_dipswitch_read()>>2) & 0x03);
@@ -307,20 +306,6 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
     //按目前需求，超过1层权限，就按所有楼层处理  
     for(i=0;i<num;i++)
     {
-
-//        if(floorBuf[i] == 253)
-//        {
-//            curFloor = 1;
-//        }
-//        else if(floorBuf[i] == 254)
-//        {
-//            curFloor = 2;
-//        }
-//        else if(floorBuf[i] == 255)
-//        {
-//            curFloor = 3;
-//        }
-
         if(floorBuf[i] > 200)
         {
             if(256-floorBuf[i] == offset)
