@@ -79,7 +79,7 @@ SYSERRORCODE_E packetToElevatorExtend(USERDATA_STRU *localUserData,ELEVATOR_BUFF
     
     if(num > 1)//多层权限，手动
     {
-        result = calcMultilFloor(authLayer,num,devSendData);
+        result = calcMultilFloor((uint8_t *)authLayer,num,devSendData);
     }
     else    //单层权限，直接呼默认权限楼层，自动
     {

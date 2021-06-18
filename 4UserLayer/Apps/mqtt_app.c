@@ -159,8 +159,9 @@ log_d("2 gDevBaseParam.deviceCode.qrSn = %s,gDevBaseParam.deviceCode.qrSnLen = %
                 sendtick = xTaskGetTickCount();
                 sprintf((char*)heartBeat,"{\"commandCode\":\"99999\",\"deviceCode\":\"%s\"}",gDevBaseParam.deviceCode.deviceSn);
                 heartBeatLen = strlen((const char*)heartBeat);
-                log_d("heartBeatLen = %d,heartbeat = %s\r\n",heartBeatLen,heartBeat);                
                 topicString.cstring = gDevBaseParam.mqttTopic.publish;       //属性上报 发布
+                log_d("heartBeatLen = %d,heartbeat = %s\r\n",heartBeatLen,heartBeat);                
+                
 
                 len = MQTTSerialize_publish((unsigned char*)buf, buflen, 0, req_qos, retained, msgid, topicString, heartBeat, heartBeatLen);//发布消息
                 rc = transport_sendPacketBuffer(gMySock, (unsigned char*)buf, len);
