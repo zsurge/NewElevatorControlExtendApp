@@ -714,10 +714,9 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
 #endif
 
 
-uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num)
-{
-    uint8_t** result; 
-    cJSON* root,*json_item,*dataObj;
+void GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num,uint8_t descBuff[][8])
+{    
+    cJSON* root,*json_item;
     cJSON* arrayElement;
     int tmpArrayNum = 0;
     int i = 0;
@@ -728,17 +727,18 @@ uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *nu
     {
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
-        return NULL;
+        my_free(root);
+        return ;      
     }
     else
     {
         //根据协议，默认所有的子项是data
-        dataObj = cJSON_GetObjectItem ( root, "data" );  
-        json_item = cJSON_GetObjectItem ( dataObj, (const char*)item );        
-
+        json_item = cJSON_GetObjectItem ( root, "cardNo" );  
+        
         if( json_item->type == cJSON_Array )
         {
             tmpArrayNum = cJSON_GetArraySize(json_item);
+            
             log_d("cardArrayNum = %d\r\n",tmpArrayNum);
             
             //每个人最多20张卡
@@ -747,28 +747,14 @@ uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *nu
                 tmpArrayNum = 20;
             }
 
-            result = (uint8_t **)my_malloc(tmpArrayNum*sizeof(uint8_t *));
-
-            if(result == NULL)
-            {
-                 *num = 0;
-                log_d("create array error\r\n");
-                cJSON_Delete(root);
-                return NULL;                
-            }
-
-            *num = tmpArrayNum;
-            
-            for (i = 0; i < tmpArrayNum; i++)
-            {
-                result[i] = (uint8_t *)my_malloc(8 * sizeof(uint8_t));
-            }            
+            *num = tmpArrayNum;           
+         
 
             for(i=0;i<tmpArrayNum;i++)
             {
                 arrayElement = cJSON_GetArrayItem(json_item, i);                 
-                strcpy ((char*)result[i], arrayElement->valuestring ); 
-                log_d("result :%d = %s\r\n",i,result[i]); 
+                strcpy ((char *)descBuff[i], arrayElement->valuestring ); 
+                log_d("result :%d = %s\r\n",i,descBuff[i]); 
             }
 
         }
@@ -780,26 +766,25 @@ uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *nu
                  *num = 0;
                 log_d("card no is empty \r\n");
                 cJSON_Delete(root);
-                return NULL;    
+                my_free(root);
+                
+                return ;      
             }
         
             tmpArrayNum = 1;
             *num = tmpArrayNum;
 
-            result[0] = (uint8_t *)my_malloc(8 * sizeof(uint8_t)); 
             
 			if ( strlen ( json_item->valuestring ) > 8 )
 			{
-				memcpy ( result[0], json_item->valuestring,8 );
+				memcpy ( descBuff[0], json_item->valuestring,8 );
 			}
 			else
 			{
-			    strcpy ( (char*)result[0], json_item->valuestring ); 
+			    strcpy ((char*)descBuff[0], json_item->valuestring ); 
 			}
 
-			log_d ( "json_item =  %s\r\n",json_item->valuestring );
-
-            
+			log_d ( "json_item =  %s\r\n",descBuff[0]);            
             
         }
         else
@@ -807,14 +792,17 @@ uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *nu
             *num = 0;
             log_d ( "can't parse json buff\r\n" );
             cJSON_Delete(root);
-            return NULL;
+            my_free(root);
+            
+          return ; 
         }
         
-    }        
+    } 
     
     cJSON_Delete(root);
-    return result;
+    my_free(root);
 }
+
 
 
 

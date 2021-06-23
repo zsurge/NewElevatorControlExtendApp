@@ -32,14 +32,14 @@
 /*----------------------------------------------*
  * 宏定义                                       *
  *----------------------------------------------*/
-//#define   HOST_NAME       "192.168.110.79"     //服务器IP地址 测试专用 
-#define   HOST_NAME         "estate.bsgoal.net.cn"
+#define   HOST_NAME       "192.168.110.79"     //服务器IP地址 测试专用 
+//#define   HOST_NAME         "estate.bsgoal.net.cn"
 //#define   HOST_NAME         "120.78.247.221"
 
 #define   HOST_PORT     1883    //由于是TCP连接，端口必须是1883
 
-#define DEVICE_PUBLISH		"/smartCloud/server/msg/device"	
-#define DEVICE_SUBSCRIBE	"/smartCloud/terminal/msg/"  
+#define DEVICE_PUBLISH		"/smartCloud/server/msg/developer"	
+#define DEVICE_SUBSCRIBE	"/smartCloud/developer/msg/"  
 
 #define DEV_FACTORY_PUBLISH		"/smartCloud/production/msg/device"	
 #define DEV_FACTORY_SUBSCRIBE	"/smartCloud/production/msg/"    
