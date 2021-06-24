@@ -280,35 +280,39 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 {
 
 	SYSERRORCODE_E result = NO_ERR;
-	cJSON* root;
+	cJSON* root,*dataObj;
 	char* tmpBuf;
 	char tmpTime[32] = {0};
 
 	root = cJSON_CreateObject();
+	dataObj = cJSON_CreateObject();
 
-	if ( !root )
+	if ( !root || !dataObj )
 	{
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
 		cJSON_Delete ( root );
+		cJSON_Delete ( dataObj );
 		my_free ( tmpBuf );
 		return CJSON_CREATE_ERR;
 	}
 
 	cJSON_AddStringToObject ( root, "deviceCode", gDevBaseParam.deviceCode.deviceSn );
 	log_d ( "deviceCode = %s\r\n",gDevBaseParam.deviceCode.deviceSn );
+	cJSON_AddStringToObject ( root, "commandCode","4002" );
 
-
-	cJSON_AddStringToObject ( root, "commandCode","10024" );
-	cJSON_AddStringToObject ( root, "cardNo", ( const char* ) localUserData->cardNo );	
-	cJSON_AddNumberToObject ( root, "callType",localUserData->authMode );
-	cJSON_AddNumberToObject ( root, "status", ON_LINE );
+	cJSON_AddItemToObject(root, "data", dataObj);
+	
+	cJSON_AddStringToObject ( dataObj, "cardNo", ( const char* ) localUserData->cardNo );	
+	cJSON_AddNumberToObject ( dataObj, "enterType",localUserData->authMode );
+	cJSON_AddNumberToObject ( dataObj, "status", ON_LINE );
 	
 	strcpy ( tmpTime, ( const char* ) bsp_ds1302_readtime() );
 	log_d("tmpTime = %s\r\n",tmpTime);
-	cJSON_AddStringToObject ( root, "callElevatorTime",tmpTime );
-	cJSON_AddStringToObject ( root, "timeStamp", ( const char* ) localUserData->startTime );
-	cJSON_AddNumberToObject ( root, "ownerId", atoi(localUserData->userId) );
-	cJSON_AddNumberToObject ( root, "ownerType",localUserData->ownerType );
+	cJSON_AddStringToObject ( dataObj, "enterTime",tmpTime );
+	cJSON_AddNumberToObject ( dataObj, "faceCompare", 1);
+	cJSON_AddNumberToObject ( dataObj, "direction", 1);
+	cJSON_AddStringToObject ( dataObj, "qrId", localUserData->userId );
+
 	log_d("localUserData->ownerType = %d\r\n",localUserData->ownerType);
 	tmpBuf = cJSON_PrintUnformatted ( root );
 
@@ -317,6 +321,7 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 	{
 		log_d ( "cJSON_PrintUnformatted error \r\n" );
 		cJSON_Delete ( root );
+		cJSON_Delete ( dataObj );
 		my_free ( tmpBuf );
 		return CJSON_FORMAT_ERR;
 	}
@@ -324,6 +329,8 @@ uint8_t packetPayload ( USERDATA_STRU* localUserData,uint8_t* descJson )
 	strcpy ( ( char* ) descJson,tmpBuf );
 
 	cJSON_Delete ( root );
+    cJSON_Delete ( dataObj );
+    
 	my_free ( tmpBuf );
 	return result;
 
@@ -379,7 +386,7 @@ uint8_t parseQrCode ( uint8_t* jsonBuff,USERDATA_STRU* qrCodeInfo )
 
 
 	tmpArray = NULL;
-	tmpArray = cJSON_GetObjectItem ( root, "i" );
+	tmpArray = cJSON_GetObjectItem ( root, "qI" );
 
 	if ( tmpArray )
 	{

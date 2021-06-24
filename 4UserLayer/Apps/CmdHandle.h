@@ -41,11 +41,11 @@
 //远程
 #define AUTH_MODE_REMOTE    3
 //解绑
-#define AUTH_MODE_UNBIND    4
+#define AUTH_MODE_UNBIND    6
 //绑定
 #define AUTH_MODE_BIND      5
 //二维码
-#define AUTH_MODE_QR        7
+#define AUTH_MODE_QR        4
 
 #define QUEUE_BUF_LEN   512
 

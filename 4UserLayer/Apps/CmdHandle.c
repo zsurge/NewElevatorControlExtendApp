@@ -905,161 +905,7 @@ static SYSERRORCODE_E GetServerIp ( uint8_t* msgBuf )
 
 }
 
-#ifdef BSG_ELEVATOR
 
-//获取用户信息
-static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
-{
-	SYSERRORCODE_E result = NO_ERR;
-	uint16_t len =0;
-    uint8_t buf[512] = {0};
-    USERDATA_STRU tempUserData = {0};
-    uint8_t ret = 1;
-    uint8_t tmp[128] = {0};
-    char *multipleFloor[64] = {0};
-    int multipleFloorNum = 0;
-    char *cardArray[20] = {0};
-    int multipleCardNum=0;
-    uint16_t i = 0;
-    memset(&tempUserData,0x00,sizeof(USERDATA_STRU));
-
-    if(!msgBuf)
-    {
-        return STR_EMPTY_ERR;
-    }
-
-    log_d("msgBuf = %s\r\n",msgBuf);
-
-   
-
-    tempUserData.head = TABLE_HEAD;
-
-    //1.保存以userID为key的表
-    memset(tmp,0x00,sizeof(tmp));
-    strcpy((char *)tmp,(const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerId",1));
-    sprintf((char *)tempUserData.userId,"%08s",tmp);
-    log_d("tempUserData.userId = %s,len = %d\r\n",tempUserData.userId,strlen((const char *)tempUserData.userId));  
-    
-    //3.保存楼层权限
-    memset(tmp,0x00,sizeof(tmp));
-    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"floorPower",1));
-    split((char *)tmp,",",multipleFloor,&multipleFloorNum); //调用函数进行分割 
-
-    if(multipleFloorNum >= 1)
-    {
-        for(len=0;len<multipleFloorNum;len++)
-        {            
-            tempUserData.accessFloor[len] = atoi(multipleFloor[len]);
-            log_d("=====asscessFloor[%d] = %d=====\r\n",len,tempUserData.accessFloor[len]);
-        }
-    }
-    else
-    {          
-        log_d("tempUserData.accessFloor error!!!!!!!!!!!!!!!\r\n");
-    }
- 
-
-    //7.保存用户类型
-    memset(tmp,0x00,sizeof(tmp));
-    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerType",1));
-    tempUserData.ownerType = atoi((const char*)tmp);
-    log_d("tempUserData.ownerType = %d,,,= %s\r\n",tempUserData.ownerType,tmp);
-    
-
-    //4.保存默认楼层
-    memset(tmp,0x00,sizeof(tmp));
-    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"baseFloor",1));
-    tempUserData.defaultFloor = atoi((const char*)tmp);
-    log_d("tempUserData.defaultFloor = %d\r\n",tempUserData.defaultFloor);
-
-    //5.保存开始时间
-    strcpy((char *)tempUserData.startTime,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"startTime",1));
-    log_d("tempUserData.startTime = %s\r\n",tempUserData.startTime);
-    
-    //6.保存结束时间
-    strcpy((char *)tempUserData.endTime,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"endTime",1));
-    log_d("tempUserData.endTime = %s\r\n",tempUserData.endTime);
-
-
-    //2.保存卡号
-    memset(buf,0x00,sizeof(buf));
-    strcpy((char *)buf,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"cardNo",1));
-    split((char *)buf,",",cardArray,&multipleCardNum); //调用函数进行分割 
-
-    //全0的USER ID不记录
-    if(memcmp(tempUserData.userId,"00000000",CARD_USER_LEN) != 0)
-    {
-        tempUserData.userState = USER_VALID;
-        ret = writeUserData(&tempUserData,USER_MODE);
-        log_d("write user id = %d\r\n",ret); 
-        if(ret != 0)
-        {   
-            log_e("write user id error\r\n");
-            if(ret!=4)//add 2021.01.13 若是已有，也回复成功
-            {
-                result = FLASH_W_ERR;
-            }
-
-        }        
-    }   
-    
-
-    if(multipleCardNum >= 1)
-    {
-        for(i=0;i<multipleCardNum;i++)
-        {
-            tempUserData.cardState = CARD_VALID;     
-            memset(tempUserData.cardNo,0x00,sizeof(tempUserData.cardNo));
-            memcpy(tempUserData.cardNo,cardArray[i],CARD_USER_LEN);   
-
-            log_d("->%d th,cardid = %s\r\n",i,tempUserData.cardNo);
-            
-            ret = writeUserData(&tempUserData,CARD_MODE);
-
-            if(ret != 0)
-            {    
-                log_e("write card id error\r\n"); 
-                if(ret!=4)//add 2021.01.13 若是已存在，也回复成功
-                {
-                    result = FLASH_W_ERR;
-                }
-            }
-
-        }
-    }
-    else
-    {
-        log_d("the empty card Number\r\n");
-    }  
-
-    
-    memset(buf,0x00,sizeof(buf));  
-    
-    if(result == NO_ERR)
-    {
-        //影响服务器
-        strcpy(buf,packetBaseJson(msgBuf,"10004",1));
-    }
-    else
-    {
-        //影响服务器
-        strcpy(buf,packetBaseJson(msgBuf,"10004",0));
-    }
-    
-    len = strlen((const char*)buf);
-    
-    mqttSendData(buf,len);    
-
-//    for (i = 0; i < 20; i++)
-//    {
-//        my_free(cardArray[i]);
-//    }      
-    
-	return result;
-
-}
-
-#else
 
 //获取用户信息
 static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
@@ -1091,7 +937,7 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     //1.保存以userID为key的表
     memset(tmp,0x00,sizeof(tmp));
     strcpy((char *)tmp,(const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerId",1));
-    sprintf((char *)tempUserData.userId,"%08s",tmp);
+    memcpy(tempUserData.userId,tmp,strlen((const char*)tmp));    
     log_d("tempUserData.userId = %s,len = %d\r\n",tempUserData.userId,strlen((const char *)tempUserData.userId));  
     
     //3.保存楼层权限
@@ -1111,20 +957,7 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     {          
         log_d("tempUserData.accessFloor error!!!!!!!!!!!!!!!\r\n");
     }
- 
 
-    //7.保存用户类型
-//    memset(tmp,0x00,sizeof(tmp));
-//    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"ownerType",1));
-//    tempUserData.ownerType = atoi((const char*)tmp);
-//    log_d("tempUserData.ownerType = %d,,,= %s\r\n",tempUserData.ownerType,tmp);
-    
-
-//    //4.保存默认楼层
-//    memset(tmp,0x00,sizeof(tmp));
-//    strcpy((char *)tmp,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"baseFloor",1));
-//    tempUserData.defaultFloor = atoi((const char*)tmp);
-//    log_d("tempUserData.defaultFloor = %d\r\n",tempUserData.defaultFloor);
 
     //5.保存开始时间
     strcpy((char *)tempUserData.startTime,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"startTime",1));
@@ -1156,6 +989,8 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     {
         for(i=0;i<multipleCardNum;i++)
         {
+            log_d("tempUserData.userId = %s,len = %d\r\n",tempUserData.userId,strlen((const char *)tempUserData.userId));  
+        
             tempUserData.cardState = CARD_VALID;     
             memset(tempUserData.cardNo,0x00,sizeof(tempUserData.cardNo));
             memcpy(tempUserData.cardNo,cardArray[i],CARD_USER_LEN);   
@@ -1171,6 +1006,26 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
                 
             }
 
+            memset(buf,0x00,sizeof(buf));  
+            
+            if(result == NO_ERR)
+            {
+                //影响服务器
+                //strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"4004",1));
+
+                PacketDownloadCardNo(msgBuf,tempUserData.cardNo,1,buf);
+            }
+            else
+            {
+                //影响服务器
+                //strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"4004",0));
+                PacketDownloadCardNo(msgBuf,tempUserData.cardNo,1,buf);
+            }
+            
+            len = strlen((const char*)buf);
+            
+            mqttSendData(buf,len); 
+            
         }
     }
     else
@@ -1178,34 +1033,14 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
         log_d("the empty card Number\r\n");
     }  
 
-    
-    memset(buf,0x00,sizeof(buf));  
-    
-    if(result == NO_ERR)
-    {
-        //影响服务器
-        strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"4004",1));
-    }
-    else
-    {
-        //影响服务器
-        strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"4004",0));
-    }
-    
-    len = strlen((const char*)buf);
-    
-    mqttSendData(buf,len);    
 
-//    for (i = 0; i < 20; i++)
-//    {
-//        my_free(cardArray[i]);
-//    }      
+
     
 	return result;
 
 }
 
-#endif
+
 
 
 //远程呼梯

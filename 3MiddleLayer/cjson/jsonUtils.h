@@ -114,6 +114,11 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff);
 SYSERRORCODE_E getTimePacket(uint8_t *descBuf);
 
 
+//对卡号回复进行打包
+SYSERRORCODE_E PacketDownloadCardNo ( const uint8_t* jsonBuff,const uint8_t *cardNo,char status,const uint8_t* descJson);
+
+
+
 
 //获取JSON数组
 //uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num);

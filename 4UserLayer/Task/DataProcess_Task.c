@@ -118,8 +118,8 @@ static void vTaskDataProcess(void *pvParameters)
                 log_d("key = %s\r\n",cardNo); 
                 
                 isFind = readUserData(cardNo,CARD_MODE,&localUserData);   
-
-                log_d("isFind = %d,rUserData.cardState = %d\r\n",isFind,localUserData.cardState);
+                
+                log_d("isFind = %d,rUserData.cardState = %d,localUserData.userId = %s\r\n",isFind,localUserData.cardState,localUserData.userId);
 
                 if(localUserData.cardState != CARD_VALID || isFind != 0)
                 {
