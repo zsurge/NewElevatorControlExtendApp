@@ -127,7 +127,7 @@ static void vTaskComm(void *pvParameters)
         {
             //无消息则发送握手消息            
             memset(buf,0x00,sizeof(buf));
-            if(devSn > 4)
+            if(devSn > 7)
             {
               devSn = 0;
             }
@@ -216,21 +216,16 @@ uint16_t packetBuf(ELEVATOR_TRANBUFF_STRU *src,uint8_t *desc)
 {
     uint8_t buf[32] = {0};
     uint16_t len = 0;    
-    ELEVATOR_PARSE_UN tmp;
-
-    tmp.value = src->value;
 
     buf[len++] = 0xA6;
     buf[len++] = 0xA6;
     buf[len++] = 0xA6;
     buf[len++] = src->devSn;
-    buf[len++] = 0x05;    
+    buf[len++] = 0x03;    
     buf[len++] = 0xA1;
-    buf[len++] = tmp.buf[3];
-    buf[len++] = tmp.buf[2];
-    buf[len++] = tmp.buf[1];
-    buf[len++] = tmp.buf[0];   
-    buf[len++] = xorCRC(buf,10);
+    buf[len++] = src->value/256;//高8位
+    buf[len++] = src->value%256;//低8位
+    buf[len++] = xorCRC(buf,8);
 
     memcpy(desc,buf,len);
 
@@ -246,13 +241,11 @@ uint16_t packetDefault(uint8_t devSn ,uint8_t *desc)
     buf[len++] = 0xA6;
     buf[len++] = 0xA6;
     buf[len++] = devSn;
-    buf[len++] = 0x05;    
+    buf[len++] = 0x03;    
     buf[len++] = 0x06;
-    buf[len++] = 0x00;
-    buf[len++] = 0x00;
-    buf[len++] = 0x00;
-    buf[len++] = 0x00;   
-    buf[len++] = xorCRC(buf,10);
+    buf[len++] = 0x00;//高8位
+    buf[len++] = 0x00;//低8位
+    buf[len++] = xorCRC(buf,8);
 
     memcpy(desc,buf,len);
 

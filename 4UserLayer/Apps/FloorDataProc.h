@@ -41,7 +41,7 @@
 /*----------------------------------------------*
  * ∫Í∂®“Â                                       *
  *----------------------------------------------*/
-#define MAX_DEV_NO 4
+#define MAX_DEV_NO 8
  
 typedef struct
 {
@@ -53,12 +53,6 @@ typedef struct
 {
     ELEVATOR_TRANBUFF_STRU data[MAX_DEV_NO];
 }ELEVATOR_BUFF_STRU;
-
-typedef union
-{
-    uint8_t buf[4];
-    uint32_t value;    
-}ELEVATOR_PARSE_UN;
 
 
 
