@@ -188,13 +188,13 @@ static SYSERRORCODE_E SendToQueue(uint8_t *buf,int len,uint8_t authMode)
                  (void *) &ptQR,   /* 发送指针变量recv_buf的地址 */
                  (TickType_t)300) != pdPASS )
     {
-        DBG("the queue is full!\r\n");                
+        //DBG("the queue is full!\r\n");                
         xQueueReset(xDataProcessQueue);
     } 
     else
     {
         //dbh("SendToQueue",(char *)buf,len);
-        log_d("SendToQueue buf = %s,len = %d\r\n",buf,len);
+        //log_d("SendToQueue buf = %d,len = %d, ptQR->authMode = %d\r\n",ptQR->data[0],ptQR->dataLen,ptQR->authMode);
     } 
 
 
@@ -1074,9 +1074,8 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
 
-    log_d("3005 = >> %s\r\n",msgBuf);
 
-    log_d("%d,%d\r\n",gtemplateParam.templateCallingWay.isFace,gDevBaseParam.deviceState.iFlag);
+    log_d("%d,%x\r\n",gtemplateParam.templateCallingWay.isFace,gDevBaseParam.deviceState.iFlag);
     
     if(gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
 //    if(gtemplateParam.templateCallingWay.isFace && gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
@@ -1086,26 +1085,24 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
         strcpy((char *)accessFloor,(const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"currentLayer",1));
         tagFloor[0] = atoi((const char*)accessFloor);
 
-        log_d("tagFloor = %d\r\n",tagFloor[0]);
+        log_d("tagFloor = %d, = %s\r\n",tagFloor[0],tagFloor);
 
         //3.保存楼层权限
-        memset(accessFloor,0x00,sizeof(accessFloor));
-        strcpy((char *)accessFloor,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"accessLayer",1));
-        split((char *)accessFloor,",",multipleFloor,&multipleFloorNum); //调用函数进行分割 
-        
-        if(multipleFloorNum > 1)
-        {
-            for(len=0;len<multipleFloorNum;len++)
-            {
-                accessFloor[len] = atoi(multipleFloor[len]); 
-                
-                log_d("accessFloor[%d] = %d\r\n",len,accessFloor[len]);
-            }
-        }   
+//        memset(accessFloor,0x00,sizeof(accessFloor));
+//        strcpy((char *)accessFloor,  (const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"accessLayer",1));
+//        split((char *)accessFloor,",",multipleFloor,&multipleFloorNum); //调用函数进行分割 
+//        
+//        if(multipleFloorNum > 1)
+//        {
+//            for(len=0;len<multipleFloorNum;len++)
+//            {
+//                accessFloor[len] = atoi(multipleFloor[len]);                 
+//            }
+//        }   
 
         memset(buf,0x00,sizeof(buf));
         
-        if(strlen((const char*)tagFloor) == 0 && strlen((const char*)accessFloor)==0)
+        if(strlen((const char*)tagFloor) == 0)
         {
             strcpy(buf,packetBaseJson(msgBuf,"10046",0));
         }
@@ -1115,18 +1112,16 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
         }  
 
          //发送目标楼层
-         if(strlen((const char*)tagFloor) == 1) 
-         {
-             //这里需要发消息到消息队列，进行呼梯
-             SendToQueue(tagFloor,strlen((const char*)tagFloor),AUTH_MODE_REMOTE);
-         }
+         //这里需要发消息到消息队列，进行呼梯
+         SendToQueue(tagFloor,1,AUTH_MODE_REMOTE);
+ 
 
          //发送多楼层权限
-         if(strlen((const char*)accessFloor) > 1)
-         {
-            //这里需要发消息到消息队列，进行呼梯
-            SendToQueue(accessFloor,strlen((const char*)accessFloor),AUTH_MODE_REMOTE);
-         }          
+//         if(strlen((const char*)accessFloor) > 1)
+//         {
+//            //这里需要发消息到消息队列，进行呼梯
+//            SendToQueue(accessFloor,strlen((const char*)accessFloor),AUTH_MODE_REMOTE);
+//         }          
         
         len = strlen((const char*)buf);
 
