@@ -129,7 +129,7 @@ const CMD_HANDLE_T CmdList[] =
     {"10023", PCOptDev},
     {"10002", EnableDev}, 
     {"88888", SetLocalTime}, 
-    {"30131", getRemoteTime},
+    {"88881", getRemoteTime},
 };
 
 
