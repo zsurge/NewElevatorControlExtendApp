@@ -112,7 +112,7 @@ static void vTaskComm(void *pvParameters)
 
         if( gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
         {
-            log_d("gDevBaseParam.deviceState.iFlag = %x\r\n",gDevBaseParam.deviceState.iFlag);
+            
         
             xReturn = xQueueReceive( xTransDataQueue,    /* 消息队列的句柄 */
                                      (void *)recvBuf,  /*这里获取的是结构体的地址 */

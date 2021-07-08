@@ -117,7 +117,7 @@ static void vTaskBarCode(void *pvParameters)
     { 
         memset(sendBuff,0x00,sizeof(sendBuff));
         
-        if(parseReader() == FINISHED)
+        if(parseReader() == FINISHED && gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
         {        
 
         len = gReaderData.rxCnt;

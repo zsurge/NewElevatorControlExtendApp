@@ -31,7 +31,7 @@
  * ∫Í∂®“Â                                       *
  *----------------------------------------------*/
  
-#define DEBUG_PRINT
+//#define DEBUG_PRINT
 
 
 #define _myAssert(char,int) printf("Error:%s,%d\r\n",char,int)
