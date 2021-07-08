@@ -246,8 +246,13 @@ int transport_open(char* addr, int port)
 	
 	server = gethostbyname(addr);
 	if(server == NULL)
-		log_d("[ERROR] Get host ip failed\r\n");
-	
+    {
+        //πÿ±’¡¥Ω”
+        close(*sock);        
+        log_d("[ERROR] connect failed\r\n");
+        return -1;
+    }
+
 	memset(&serv_addr,0,sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(port);

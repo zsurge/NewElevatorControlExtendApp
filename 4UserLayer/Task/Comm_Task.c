@@ -110,38 +110,46 @@ static void vTaskComm(void *pvParameters)
     {
         memset(&gRecvElevtorData,0x00,sizeof(gRecvElevtorData));       
 
-  
-        xReturn = xQueueReceive( xTransDataQueue,    /* 消息队列的句柄 */
-                                 (void *)recvBuf,  /*这里获取的是结构体的地址 */
-                                 xMaxBlockTime); /* 设置阻塞时间 */
-        if(pdTRUE == xReturn)
+        if(gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
         {
-            //消息接收成功，发送接收到的消息   
-            memset(buf,0x00,sizeof(buf));
-            bufLen = packetBuf(recvBuf ,buf);
-            RS485_SendBuf(COM6,buf,bufLen); 
-            dbh("send com6 buff", buf, bufLen);  
+  
+            xReturn = xQueueReceive( xTransDataQueue,    /* 消息队列的句柄 */
+                                     (void *)recvBuf,  /*这里获取的是结构体的地址 */
+                                     xMaxBlockTime); /* 设置阻塞时间 */
+            if(pdTRUE == xReturn)
+            {
+                //消息接收成功，发送接收到的消息   
+                memset(buf,0x00,sizeof(buf));
+                bufLen = packetBuf(recvBuf ,buf);
+                RS485_SendBuf(COM6,buf,bufLen); 
+                dbh("send com6 buff", buf, bufLen);  
+
+            }
+            else
+            {
+                //无消息则发送握手消息            
+                memset(buf,0x00,sizeof(buf));
+                if(devSn > 4)
+                {
+                  devSn = 0;
+                }
+                devSn++;
+                bufLen = packetDefault(devSn,buf);
+                RS485_SendBuf(COM6,buf,bufLen); 
+            }  
+            
+            vTaskDelay(50);
+            
+            if(deal_Serial_Parse() == FINISHED)
+            { 
+                log_d("recv extend return data\r\n");
+            }  
 
         }
         else
         {
-            //无消息则发送握手消息            
-            memset(buf,0x00,sizeof(buf));
-            if(devSn > 4)
-            {
-              devSn = 0;
-            }
-            devSn++;
-            bufLen = packetDefault(devSn,buf);
-            RS485_SendBuf(COM6,buf,bufLen); 
-        }  
-        
-        vTaskDelay(50);
-        
-        if(deal_Serial_Parse() == FINISHED)
-        { 
-            log_d("recv extend return data\r\n");
-        }  
+           vTaskDelay(500);
+        }
 
 		/* 发送事件标志，表示任务正常运行 */        
 		xEventGroupSetBits(xCreatedEventGroup, TASK_BIT_1);  

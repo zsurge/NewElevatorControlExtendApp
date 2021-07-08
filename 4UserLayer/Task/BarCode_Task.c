@@ -117,14 +117,14 @@ static void vTaskBarCode(void *pvParameters)
     { 
         memset(sendBuff,0x00,sizeof(sendBuff));
         
-        if(parseReader() == FINISHED)
+        if(parseReader() == FINISHED && gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
         {        
 
         len = gReaderData.rxCnt;
         memcpy(sendBuff,gReaderData.rxBuff,len);        
         memset(&gReaderData,0x00,sizeof(FROMREADER_STRU));
         
-        if(len > 10  && sendBuff[len-1] == 0x0A && sendBuff[len-2] == 0x0D && gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
+        if(len > 10  && sendBuff[len-1] == 0x0A && sendBuff[len-2] == 0x0D )
         {       
             log_d("card or qr = %s\r\n",sendBuff);
 

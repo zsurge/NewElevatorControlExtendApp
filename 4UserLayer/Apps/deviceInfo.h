@@ -34,7 +34,7 @@
  #define DEFAULT_DEV_NAME "ELEVATOR"
 
  #define DEVICE_DISABLE 0x00
- #define DEVICE_ENABLE  0x5555AAAA
+ #define DEVICE_ENABLE  0xAA55AA55
 
  #define WRITE_PRARM    0x01
  #define READ_PRARM     0x02
