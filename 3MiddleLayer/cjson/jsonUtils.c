@@ -578,13 +578,17 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,char status)
     return value;    
 }
 #else
-uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
+
+uint8_t packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status,uint8_t* descJson)
 {
-    static uint8_t value[200] = {0};
+ 
     
-	cJSON* root,*dataObj,*newroot,*tmpJsonObj,*newdataObj;
-	cJSON  *pJsonArry,*pJsonsub;
+	cJSON* root,*dataObj,*newroot,*tmpJsonObj;
+	cJSON  *pJsonArry;
     char *tmpBuf;
+
+
+    log_d("packetBaseJson jsonBuff = %s\r\n",jsonBuff);
     
 	root = cJSON_Parse ( ( char* ) jsonBuff );    //解析数据包
 	
@@ -595,30 +599,30 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
         cJSON_Delete(root);        
         cJSON_Delete(newroot);
         my_free(tmpBuf);
-        tmpBuf=NULL;        
-        
-		return NULL;
+        tmpBuf=NULL; 
+		return 1;
 	}
 	else
 	{
         newroot = cJSON_CreateObject();   
-        newdataObj = cJSON_CreateObject();   
+//        newdataObj = cJSON_CreateObject();   
         
-        if(!newroot || !newdataObj)
+        if(!newroot)
         {
             log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
             cJSON_Delete(root);
             cJSON_Delete(newroot);
-            cJSON_Delete(newdataObj);
+//            cJSON_Delete(newdataObj);
             my_free(tmpBuf);            
             tmpBuf=NULL;        
             
-    		return NULL;
+    		return 1;
         }
 
          
         cJSON_AddStringToObject(newroot, "deviceCode",gDevBaseParam.deviceCode.deviceSn); 
-        cJSON_AddItemToObject(newroot, "data", newdataObj);
+        
+//        cJSON_AddItemToObject(newroot, "data", newdataObj);
         
         tmpJsonObj = cJSON_GetObjectItem ( root, "commandCode" );        
         if(tmpJsonObj)
@@ -639,11 +643,11 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
 
         if (tmpJsonObj->type == cJSON_Number)
         {
-            cJSON_AddNumberToObject(newdataObj, "ownerId", tmpJsonObj->valueint);
+            cJSON_AddNumberToObject(newroot, "ownerId", tmpJsonObj->valueint);
         }
         else if(tmpJsonObj->type == cJSON_String)
         {
-            cJSON_AddStringToObject(newdataObj, "ownerId", tmpJsonObj->valuestring);
+            cJSON_AddStringToObject(newroot, "ownerId", tmpJsonObj->valuestring);
         }    
         
             
@@ -653,7 +657,7 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
         if (tmpJsonObj->type == cJSON_Array)
         {        
 
-            cJSON_AddItemToObject(newdataObj, "cardNo", pJsonArry = cJSON_CreateArray());
+            cJSON_AddItemToObject(newroot, "cardNo", pJsonArry = cJSON_CreateArray());
         
       
             cJSON_AddItemToArray(pJsonArry, cJSON_CreateString(cJSON_GetArrayItem(tmpJsonObj, 0)->valuestring));
@@ -670,55 +674,55 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
             }
             else
             {
-                cJSON_AddStringToObject(newdataObj, "cardNo", tmpJsonObj->valuestring);     
+                cJSON_AddStringToObject(newroot, "cardNo", tmpJsonObj->valuestring);     
             }
         }  
         
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "ownerType" );
         if(tmpJsonObj)
-            cJSON_AddNumberToObject(newdataObj, "ownerType", tmpJsonObj->valueint);
+            cJSON_AddNumberToObject(newroot, "ownerType", tmpJsonObj->valueint);
             
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "residentialId" );     
         if(tmpJsonObj)
-            cJSON_AddNumberToObject(newdataObj, "residentialId", tmpJsonObj->valueint);     
+            cJSON_AddNumberToObject(newroot, "residentialId", tmpJsonObj->valueint);     
         
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "buildingId" );
         if(tmpJsonObj)
-            cJSON_AddNumberToObject(newdataObj, "buildingId", tmpJsonObj->valueint);
+            cJSON_AddNumberToObject(newroot, "buildingId", tmpJsonObj->valueint);
             
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "roomId" );   
         if(tmpJsonObj)
-            cJSON_AddNumberToObject(newdataObj, "roomId", tmpJsonObj->valueint); 
+            cJSON_AddNumberToObject(newroot, "roomId", tmpJsonObj->valueint); 
             
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "identification" ); 
         if(tmpJsonObj)
-            cJSON_AddStringToObject(newdataObj, "identification", tmpJsonObj->valuestring);     
+            cJSON_AddStringToObject(newroot, "identification", tmpJsonObj->valuestring);     
         
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "userName" );
         if(tmpJsonObj)
-            cJSON_AddStringToObject(newdataObj, "userName", tmpJsonObj->valuestring);
+            cJSON_AddStringToObject(newroot, "userName", tmpJsonObj->valuestring);
             
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "qrId" );  
         if(tmpJsonObj)
-             cJSON_AddNumberToObject(newdataObj, "qrId", tmpJsonObj->valueint);
+             cJSON_AddNumberToObject(newroot, "qrId", tmpJsonObj->valueint);
              
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "version" );
         if(tmpJsonObj)
-            cJSON_AddStringToObject(newdataObj, "version", tmpJsonObj->valuestring);   
+            cJSON_AddStringToObject(newroot, "version", tmpJsonObj->valuestring);   
         
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "templateId" );             
          if(tmpJsonObj)
-             cJSON_AddNumberToObject(newdataObj, "templateId", tmpJsonObj->valueint);
+             cJSON_AddNumberToObject(newroot, "templateId", tmpJsonObj->valueint);
 
         tmpJsonObj = cJSON_GetObjectItem ( dataObj, "id" );             
          if(tmpJsonObj)
-             cJSON_AddNumberToObject(newdataObj, "id", tmpJsonObj->valueint);  
+             cJSON_AddNumberToObject(newroot, "id", tmpJsonObj->valueint);  
             
         
         if(status == 1)
-            cJSON_AddStringToObject(newdataObj, "status", "1");
+            cJSON_AddStringToObject(newroot, "status", "1");
         else
-            cJSON_AddStringToObject(newdataObj, "status", "0");    
+            cJSON_AddStringToObject(newroot, "status", "0");    
 
             
         tmpBuf = cJSON_PrintUnformatted(newroot); 
@@ -728,32 +732,136 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
 
             cJSON_Delete(root);
             cJSON_Delete(newroot);   
-            cJSON_Delete(newdataObj);
+//            cJSON_Delete(newdataObj);
             cJSON_Delete(pJsonArry);
-            cJSON_Delete(pJsonsub);            
+//            cJSON_Delete(pJsonsub);            
             my_free(tmpBuf);
             tmpBuf=NULL;        
             
-            return NULL;
+            return 1;
         }    
 
-        strcpy((char *)value,tmpBuf);
+        strcpy((char *)descJson,tmpBuf);
 
 	}
 	
     my_free(tmpBuf);
 	cJSON_Delete(root);
     cJSON_Delete(newroot);
-    cJSON_Delete(newdataObj);
+//    cJSON_Delete(newdataObj);
     cJSON_Delete(pJsonArry);
-    cJSON_Delete(pJsonsub);            
+//    cJSON_Delete(pJsonsub);            
     
     tmpBuf=NULL;  
     
-    return value;    
+    return 0;    
 }
 
 #endif
+
+
+//对是否禁用启用设备进行打包
+SYSERRORCODE_E PacketisEnableDev ( const uint8_t* jsonBuff,const uint8_t *srcCmd,char status,const uint8_t* descJson)
+{
+    SYSERRORCODE_E result = NO_ERR;
+    cJSON *root,*newroot,*tmpJsonObj,*dataObj;  
+    char *tmpBuf;
+    
+    log_d("packetBaseJson jsonBuff = %s\r\n",jsonBuff);
+    
+	root = cJSON_Parse ( ( char* ) jsonBuff );    //解析数据包
+	
+	if ( !root )
+	{
+		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
+        
+        cJSON_Delete(root);        
+        cJSON_Delete(newroot);
+        my_free(tmpBuf);
+        tmpBuf=NULL; 
+		return 1;
+	}
+	else
+	{
+	
+        newroot = cJSON_CreateObject();
+        
+        if (!newroot)  
+        {          
+            log_d("Error before: [%s]\r\n",cJSON_GetErrorPtr());  
+            cJSON_Delete(newroot);
+            cJSON_Delete(root);
+            my_free(tmpBuf);
+            return CJSON_PARSE_ERR;
+        } 
+
+        dataObj = cJSON_GetObjectItem ( root, "data" );
+        
+
+        tmpJsonObj = cJSON_GetObjectItem ( root, "commandCode" );   
+        
+        if(tmpJsonObj)
+        {
+            if(memcmp(srcCmd,tmpJsonObj->valuestring,strlen((const char*)tmpJsonObj->valuestring)) == 0)
+            {
+                cJSON_AddStringToObject(newroot, "commandCode", tmpJsonObj->valuestring); 
+            }
+            else
+            {
+                cJSON_AddStringToObject(newroot, "commandCode", srcCmd); 
+            }
+        } 
+                    
+
+        cJSON_AddStringToObject(newroot,"deviceCode",gDevBaseParam.deviceCode.deviceSn);
+        
+
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "identification" ); 
+        if(tmpJsonObj)
+            cJSON_AddStringToObject(newroot, "identification", tmpJsonObj->valuestring);    
+
+        tmpJsonObj = cJSON_GetObjectItem ( dataObj, "type" );             
+        if (tmpJsonObj->type == cJSON_Number)
+        {
+            cJSON_AddNumberToObject(newroot, "type", tmpJsonObj->valueint);
+        }
+        else if(tmpJsonObj->type == cJSON_String)
+        {
+            cJSON_AddStringToObject(newroot, "type", tmpJsonObj->valuestring);
+        }       
+
+        if(status == 1)
+            cJSON_AddStringToObject(newroot, "status", "1");
+        else
+            cJSON_AddStringToObject(newroot, "status", "0");            
+         
+        tmpBuf = cJSON_PrintUnformatted(newroot); 
+
+        if(tmpBuf == NULL)
+        {
+            log_d("cJSON_PrintUnformatted error \r\n");
+            my_free(tmpBuf);
+            cJSON_Delete(root);    
+            cJSON_Delete(newroot); 
+            return CJSON_FORMAT_ERR;
+        }    
+
+        strcpy((char *)descJson,tmpBuf);
+
+
+        log_d("getTimePacket = %s\r\n",tmpBuf);
+
+        cJSON_Delete(root);
+        cJSON_Delete(newroot);
+
+        my_free(tmpBuf);
+
+        return result;
+
+    }
+}
+
+
 
 
 //对卡号回复进行打包

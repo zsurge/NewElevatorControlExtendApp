@@ -292,8 +292,7 @@ SYSERRORCODE_E OpenDoor ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
     
-    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"201",1));
-
+    packetBaseJson(msgBuf,"201",1,buf);
 
     len = strlen((const char*)buf);
 
@@ -344,11 +343,11 @@ static SYSERRORCODE_E DelUserId( uint8_t* msgBuf )
 
     if(wRet ==0)
     {
-        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"10027",1));
+        packetBaseJson(msgBuf,"10027",1,buf);
     }
     else
     {
-        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"10027",0));
+        packetBaseJson(msgBuf,"10027",0,buf);
     }  
 
 
@@ -463,11 +462,11 @@ SYSERRORCODE_E AddCardNo ( uint8_t* msgBuf )
 
     if(ret ==0)
     {
-        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"4010",1));
+       packetBaseJson(msgBuf,"4010",1,buf);
     }
     else
     {
-        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"4010",0));
+       packetBaseJson(msgBuf,"4010",0,buf);
     }  
     
     len = strlen((const char*)buf);
@@ -514,11 +513,11 @@ SYSERRORCODE_E DelCardNo ( uint8_t* msgBuf )
     //2.查询以卡号为ID的记录，并删除
     if(wRet ==0)
     {
-        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"4007",1));
+        packetBaseJson(msgBuf,"4007",1,buf);
     }
     else
     {
-        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"4007",0));
+        packetBaseJson(msgBuf,"4007",0,buf);
         
     }  
 
@@ -578,7 +577,7 @@ static SYSERRORCODE_E RemoteResetDev ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
     
-    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"10010",1));
+    packetBaseJson(msgBuf,"10010",1,buf);
     
     len = strlen((const char*)buf);
 
@@ -680,10 +679,10 @@ SYSERRORCODE_E EnableDev ( uint8_t* msgBuf )
     }
 
 
-    //add 2020.04.27
+//    //add 2020.04.27
     xQueueReset(xDataProcessQueue); 
-        
-    strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10002",1));
+//        
+    PacketisEnableDev(msgBuf,(uint8_t *)"10002",1,buf);
 
     len = strlen((const char*)buf);
 
@@ -855,7 +854,7 @@ SYSERRORCODE_E GetTemplateParam ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
     
-    strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10001",1));
+    packetBaseJson(msgBuf,(uint8_t *)"10001",1,buf);
 
     len = strlen((const char*)buf);
 
@@ -1064,7 +1063,6 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
     log_d("%d,%d\r\n",gtemplateParam.templateCallingWay.isFace,gDevBaseParam.deviceState.iFlag);
     
     if(gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
-//    if(gtemplateParam.templateCallingWay.isFace && gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
     {
         //1.保存目标楼层
         memset(accessFloor,0x00,sizeof(accessFloor));
@@ -1092,11 +1090,11 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
         
         if(strlen((const char*)tagFloor) == 0 && strlen((const char*)accessFloor)==0)
         {
-            strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10046",0));
+           packetBaseJson(msgBuf,(uint8_t *)"10046",0,buf);
         }
         else
         {
-            strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10046",1));
+            packetBaseJson(msgBuf,(uint8_t *)"10046",1,buf);
         }  
 
          //发送目标楼层
@@ -1150,7 +1148,7 @@ static SYSERRORCODE_E PCOptDev ( uint8_t* msgBuf )
     
     memset(buf,0x00,sizeof(buf));
     
-    strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10023",1));
+    packetBaseJson(msgBuf,(uint8_t *)"10023",1,buf);
 
     //这里需要发消息到消息队列，进行呼梯
     SendToQueue(purposeLayer,1,AUTH_MODE_REMOTE);
@@ -1195,7 +1193,7 @@ static SYSERRORCODE_E ClearUserInof ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
 
-    strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"4006",1));
+    packetBaseJson(msgBuf,(uint8_t *)"4006",1,buf);
     
     len = strlen((const char*)buf);
     
@@ -1384,7 +1382,7 @@ static SYSERRORCODE_E UnbindDev( uint8_t* msgBuf )
     } 
 
     
-    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,"10022",1));
+    packetBaseJson(msgBuf,"10022",1,buf);
 
     len = strlen((const char*)buf);
 

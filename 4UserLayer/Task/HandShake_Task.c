@@ -103,10 +103,10 @@ static void vTaskHandShake(void *pvParameters)
 
     while(1)
     {  
-        bsp_HC595Show('D',0,1);
-        vTaskDelay(800);
-        bsp_HC595Show(0,0,2);
-        vTaskDelay(800);
+        bsp_HC595Show('D',0,2);
+        vTaskDelay(1000);
+        bsp_HC595Show(0,0,1);
+        vTaskDelay(1000);
 
         LEDERROR = !LEDERROR;
 		/* 发送事件标志，表示任务正常运行 */        

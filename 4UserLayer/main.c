@@ -108,14 +108,8 @@ static void AppTaskCreate (void)
     //握手
     CreateHandShakeTask();
 
-    //LED灯
-//    CreateLedTask();
-
     //跟电梯通讯
     CreateCommTask();
-
-    //数码管显示
-//    CreateHc595Task();
 
     //数据处理
     CreateDataProcessTask();
@@ -126,7 +120,7 @@ static void AppTaskCreate (void)
     //二合一读卡器
     CreateBarCodeTask();
 
-    //MQTT通讯
+    //MQTT通讯cmd
     CreateMqttTask();
 
     //看门狗
