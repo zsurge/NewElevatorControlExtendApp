@@ -164,6 +164,7 @@ static void vTaskDataProcess(void *pvParameters)
                 break;
             case AUTH_MODE_QR:
                 isFind = parseQrCode(ptMsg->data,&localUserData);
+
                 if(isFind != NO_ERR)
                 {
                     log_d("not find record\r\n");
