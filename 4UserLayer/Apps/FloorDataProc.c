@@ -325,7 +325,7 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
                 curFloor = offset+1;
             }
         } 
-        else if(floorBuf[i] > 80 && floorBuf[i] > 90)
+        else if(floorBuf[i] > 80 && floorBuf[i] < 90)
         {
             if(90-floorBuf[i] <= offset)
             {
