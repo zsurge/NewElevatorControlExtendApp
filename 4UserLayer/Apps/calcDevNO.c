@@ -199,6 +199,13 @@ char *parseAccessFloor(char *str)
     int len = strlen((const char*)str);
     int i = 0;
 
+    if(str== NULL)
+    {
+        return NULL;
+    }
+
+    printf("parseAccessFloor = %s\r\n",str);
+    
     if(len >64)
     {
         len = 64;

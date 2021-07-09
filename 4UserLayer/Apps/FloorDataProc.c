@@ -144,15 +144,29 @@ SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf)
 //    }
     
 
-    if(layer > 200)
+
+//    if(layer > 200)
+//    {
+//        if(256-layer <= offset)
+//        {
+//            floor = offset - (256-layer)+1;
+//        }
+//        else
+//        {
+//            floor = offset+1;
+//        }        
+//    }
+//    else
+//    {
+//        floor = layer + ((bsp_dipswitch_read()>>2) & 0x03); //根据拨码补偿楼层数
+//    }
+    
+
+    if(layer > 80)
     {
-        if(256-layer == offset)
+        if(90-layer <= offset)
         {
-            floor = offset - (256-layer)+1;
-        }
-        else if(256-layer < offset)
-        {
-            floor = offset-(256-layer)+1;
+            floor = offset - (90-layer)+1;
         }
         else
         {
@@ -306,15 +320,27 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
     //按目前需求，超过1层权限，就按所有楼层处理  
     for(i=0;i<num;i++)
     {
-        if(floorBuf[i] > 200)
+//        if(floorBuf[i] > 200)
+//        {
+//            if(256-floorBuf[i] <= offset)
+//            {
+//                curFloor = offset - (256-floorBuf[i])+1;
+//            }
+//            else
+//            {
+//                curFloor = offset+1;
+//            }
+//        }        
+//        else
+//        {
+//            curFloor = floorBuf[i] + ((bsp_dipswitch_read()>>2) & 0x03); //根据拨码补偿楼层数
+//        }
+
+        if(floorBuf[i] > 80)
         {
-            if(256-floorBuf[i] == offset)
+            if(90-floorBuf[i] <= offset)
             {
-                curFloor = offset - (256-floorBuf[i])+1;
-            }
-            else if(256-floorBuf[i] < offset)
-            {
-                curFloor = offset-(256-floorBuf[i])+1;
+                curFloor = offset - (90-floorBuf[i])+1;
             }
             else
             {
@@ -325,6 +351,7 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
         {
             curFloor = floorBuf[i] + ((bsp_dipswitch_read()>>2) & 0x03); //根据拨码补偿楼层数
         }
+
 
         
         log_d("calc  Multil Floor = %d\r\n",curFloor);
