@@ -191,7 +191,7 @@ static void AppObjCreate (void)
         App_Printf("创建 xTransDataQueue 消息队列失败!\r\n");
     }
 
-    App_Printf("len = %d,   =%d\r\n",(UBaseType_t ) sizeof(ELEVATOR_TRANBUFF_STRU ),(UBaseType_t ) sizeof(ELEVATOR_TRANBUFF_STRU *));
+    //App_Printf("len = %d,   =%d\r\n",(UBaseType_t ) sizeof(ELEVATOR_TRANBUFF_STRU ),(UBaseType_t ) sizeof(ELEVATOR_TRANBUFF_STRU *));
 
     /*  创建 CountSem */
     CountSem_Handle = xSemaphoreCreateCounting(2,2);

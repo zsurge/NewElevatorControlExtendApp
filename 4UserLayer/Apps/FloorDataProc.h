@@ -41,17 +41,11 @@
 /*----------------------------------------------*
  * 宏定义                                       *
  *----------------------------------------------*/
-#define MAX_DEV_NO 8
- 
-typedef struct
-{
-   uint8_t devSn;  
-   uint32_t value;
-}ELEVATOR_TRANBUFF_STRU;
+#define MAX_DEV_NO 12
 
 typedef struct
 {
-    ELEVATOR_TRANBUFF_STRU data[MAX_DEV_NO];
+    uint8_t data[MAX_DEV_NO];
 }ELEVATOR_BUFF_STRU;
 
 
@@ -69,7 +63,7 @@ typedef struct
  * 内部函数原型说明                             *
  *----------------------------------------------*/
 
-extern ELEVATOR_TRANBUFF_STRU gElevtorData,gRecvElevtorData;
+extern ELEVATOR_BUFF_STRU gElevtorData,gRecvElevtorData;
 
 
 
@@ -79,7 +73,7 @@ SYSERRORCODE_E packetToElevatorExtend(USERDATA_STRU *localUserData,ELEVATOR_BUFF
 SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf);
 
 SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU *eBuf);
-void sendQueueToDev(ELEVATOR_TRANBUFF_STRU *devSendData);
+void sendQueueToDev(ELEVATOR_BUFF_STRU *devSendData);
 
 
 #endif
