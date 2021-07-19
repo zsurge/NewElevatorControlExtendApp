@@ -102,10 +102,6 @@ static void vTaskDataProcess(void *pvParameters)
                                  xMaxBlockTime); /* 设置阻塞时间 */
         if(pdTRUE != xReturn)
         {
-            //消息接收成功，发送接收到的消息
-//            packetSendBuf(ptMsg); 
-//            log_d("exec packetSendBuf end\r\n");
-
             continue;
         }
         
@@ -122,10 +118,56 @@ static void vTaskDataProcess(void *pvParameters)
                 log_d("isFind = %d,rUserData.cardState = %d\r\n",isFind,localUserData.cardState);
 
                 //DEBUG测试用
-                isFind == 0;
-                localUserData.cardState = CARD_VALID;
-                localUserData.defaultFloor = 5;
-                localUserData.accessFloor[0] = 5;
+//                isFind = 0;
+//                localUserData.cardState = CARD_VALID;
+//                localUserData.defaultFloor = 5;  
+
+
+//                localUserData.accessFloor[0] = 0x01;
+//                localUserData.accessFloor[1] = 0x02;
+//                localUserData.accessFloor[2] = 0x03;
+//                localUserData.accessFloor[3] = 0x04;
+//                localUserData.accessFloor[4] = 0x05;
+
+//                localUserData.accessFloor[5] = 0x5;
+//                localUserData.accessFloor[6] = 0x6;
+//                localUserData.accessFloor[7] = 0x7;
+//                localUserData.accessFloor[8] = 0x8;        
+//                localUserData.accessFloor[9] = 0x9;
+//                localUserData.accessFloor[10] = 0x1A;
+//                localUserData.accessFloor[11] = 0x1B;
+//                localUserData.accessFloor[12] = 0x1C;
+//                localUserData.accessFloor[13] = 0x1D;
+//                localUserData.accessFloor[14] = 0x1E;
+//                localUserData.accessFloor[15] = 0x1F;
+
+
+                
+//                localUserData.accessFloor[0] = 0x01;
+//                localUserData.accessFloor[1] = 0x02;
+//                localUserData.accessFloor[2] = 0x03;
+//                localUserData.accessFloor[3] = 0x04;
+//                localUserData.accessFloor[4] = 0x05;
+//                localUserData.accessFloor[5] = 0x06;
+//                localUserData.accessFloor[6] = 0x07;
+//                localUserData.accessFloor[7] = 0x08;
+//                localUserData.accessFloor[8] = 0x09;
+//                localUserData.accessFloor[9] = 0x0A;
+//                localUserData.accessFloor[10] = 0x0B;
+//                localUserData.accessFloor[11] = 0x0C;      
+//                localUserData.accessFloor[12] = 0x0D;
+//                localUserData.accessFloor[13] = 0x0E;
+//                localUserData.accessFloor[14] = 0x0F;
+//                localUserData.accessFloor[15] = 0x10;
+//                localUserData.accessFloor[16] = 0x11;
+//                localUserData.accessFloor[17] = 0x12;
+//                localUserData.accessFloor[18] = 0x13;
+//                localUserData.accessFloor[19] = 0x14;
+//                localUserData.accessFloor[20] = 0x15;
+//                localUserData.accessFloor[21] = 0x16;
+//                localUserData.accessFloor[22] = 0x17;
+//                localUserData.accessFloor[23] = 0x18;        
+//                localUserData.accessFloor[24] = 0x19;
 
                 if(localUserData.cardState != CARD_VALID || isFind != 0)
                 {
@@ -156,8 +198,11 @@ static void vTaskDataProcess(void *pvParameters)
                 } 
                 
                 //4.发送电梯数据到队列
+
                 memcpy(sendElevator->data,devSendData.data,sizeof(devSendData.data));
+                sendElevator->type = devSendData.type;
                 sendQueueToDev(sendElevator);  
+
 
                 break;
             case AUTH_MODE_QR:
@@ -187,9 +232,11 @@ static void vTaskDataProcess(void *pvParameters)
                 }
 
                 //4.发送电梯数据到队列
+                sendElevator->type = devSendData.type;
                 memcpy(sendElevator->data,devSendData.data,sizeof(devSendData.data));
                 sendQueueToDev(sendElevator);  
                 
+
                 break;
             case AUTH_MODE_REMOTE:
                 //直接发送目标楼层
@@ -201,9 +248,12 @@ static void vTaskDataProcess(void *pvParameters)
                 {
                     log_d("invalid floor\r\n");
                     break;
+
                 }
+                sendElevator->type = devSendData.type;
                 memcpy(sendElevator->data,devSendData.data,sizeof(devSendData.data));
                 sendQueueToDev(sendElevator);        
+
                 break;
             case AUTH_MODE_UNBIND:
                 //直接发送停用设备指令

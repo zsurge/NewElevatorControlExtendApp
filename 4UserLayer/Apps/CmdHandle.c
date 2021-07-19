@@ -292,7 +292,7 @@ SYSERRORCODE_E OpenDoor ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
     
-    strcpy(buf,packetBaseJson(msgBuf,"201",1));
+    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"201",1));
 
 
     len = strlen((const char*)buf);
@@ -344,11 +344,11 @@ static SYSERRORCODE_E DelUserId( uint8_t* msgBuf )
 
     if(wRet ==0)
     {
-        strcpy(buf,packetBaseJson(msgBuf,"10027",1));
+        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10027",1));
     }
     else
     {
-        strcpy(buf,packetBaseJson(msgBuf,"10027",0));
+        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10027",0));
     }  
 
 
@@ -436,11 +436,11 @@ SYSERRORCODE_E AddCardNo ( uint8_t* msgBuf )
 
     if(ret ==0)
     {
-        strcpy(buf,packetBaseJson(msgBuf,"10004",1));
+        strcpy(( char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10004",1));
     }
     else
     {
-        strcpy(buf,packetBaseJson(msgBuf,"10004",0));
+        strcpy(( char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10004",0));
     }  
     
     len = strlen((const char*)buf);
@@ -510,11 +510,11 @@ SYSERRORCODE_E DelCardNo ( uint8_t* msgBuf )
     //2.查询以卡号为ID的记录，并删除
     if(wRet ==0)
     {
-        strcpy(buf,packetBaseJson(msgBuf,"10005",1));
+        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10005",1));
     }
     else
     {
-        strcpy(buf,packetBaseJson(msgBuf,"10005",0));
+        strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10005",0));
         
     }  
 
@@ -550,10 +550,10 @@ SYSERRORCODE_E UpgradeDev ( uint8_t* msgBuf )
     log_d("tmpUrl = %s\r\n",tmpUrl);
     
     
-    ef_set_env("url",tmpUrl); 
+    ef_set_env((const char *)"url",(const char *)tmpUrl); 
 
     //2.设置升级状态为待升级状态
-    ef_set_env("up_status", "101700"); 
+    ef_set_env((const char *)"up_status", (const char *)"101700"); 
     
     //4.设置标志位并重启
     SystemUpdate();
@@ -574,7 +574,7 @@ static SYSERRORCODE_E RemoteResetDev ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
     
-    strcpy(buf,packetBaseJson(msgBuf,"10010",1));
+    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10010",1));
 
     if(buf == NULL)
     {
@@ -661,10 +661,10 @@ SYSERRORCODE_E EnableDev ( uint8_t* msgBuf )
     //1.读取指令字
     memset(typeBuf,0x00,sizeof(typeBuf));
     strcpy((char *)typeBuf,(const char*)GetJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"type",1));
-    type = atoi(typeBuf);
+    type = atoi((const char *)typeBuf);
     
 
-    result = modifyJsonItem(msgBuf,"status","1",1,buf);
+    result = modifyJsonItem((const uint8_t *)msgBuf,(const uint8_t *)"status",(const uint8_t *)"1",1,buf);
 
     if(result != NO_ERR)
     {
@@ -684,7 +684,7 @@ SYSERRORCODE_E EnableDev ( uint8_t* msgBuf )
     //add 2020.04.27
     xQueueReset(xDataProcessQueue); 
         
-    strcpy(buf,packetBaseJson(msgBuf,"10002",1));
+    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10002",1));
 
     len = strlen((const char*)buf);
 
@@ -856,7 +856,7 @@ SYSERRORCODE_E GetTemplateParam ( uint8_t* msgBuf )
         return STR_EMPTY_ERR;
     }
     
-    strcpy(buf,packetBaseJson(msgBuf,"10001",1));
+    strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10001",1));
 
     len = strlen((const char*)buf);
 
@@ -1037,12 +1037,12 @@ static SYSERRORCODE_E GetUserInfo ( uint8_t* msgBuf )
     if(result == NO_ERR)
     {
         //影响服务器
-        strcpy(buf,packetBaseJson(msgBuf,"10004",1));
+        strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10004",1));
     }
     else
     {
         //影响服务器
-        strcpy(buf,packetBaseJson(msgBuf,"10004",0));
+        strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10004",0));
     }
     
     len = strlen((const char*)buf);
@@ -1104,11 +1104,11 @@ static SYSERRORCODE_E RemoteOptDev ( uint8_t* msgBuf )
         
         if(strlen((const char*)tagFloor) == 0)
         {
-            strcpy(buf,packetBaseJson(msgBuf,"10046",0));
+            strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10046",0));
         }
         else
         {
-            strcpy(buf,packetBaseJson(msgBuf,"10046",1));
+            strcpy((char*)buf,(const char*)packetBaseJson(msgBuf,(uint8_t *)"10046",1));
         }  
 
          //发送目标楼层
@@ -1160,7 +1160,7 @@ static SYSERRORCODE_E PCOptDev ( uint8_t* msgBuf )
     
     memset(buf,0x00,sizeof(buf));
     
-    strcpy(buf,packetBaseJson(msgBuf,"10023",1));
+    strcpy((char *)buf,(const char *)packetBaseJson(msgBuf,(uint8_t *)"10023",1));
 
     //这里需要发消息到消息队列，进行呼梯
     SendToQueue(purposeLayer,1,AUTH_MODE_REMOTE);

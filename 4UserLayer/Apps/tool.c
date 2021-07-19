@@ -234,6 +234,22 @@ uint8_t xorCRC(uint8_t *buf,uint8_t len)
 
     return bcc;
 }
+
+uint8_t sumCRC(uint8_t *buf,uint8_t len)
+{
+    uint8_t i = 0;
+    uint8_t bcc = 0;
+    bcc = buf[0];
+
+    for(i=1;i<len;i++)
+    {
+        bcc += buf[i];
+    }
+
+    return bcc;
+}
+
+
     
 /*****************************************************************************
  º¯ Êý Ãû  : is_bit_set

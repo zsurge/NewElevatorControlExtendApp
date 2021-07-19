@@ -41,11 +41,13 @@
 /*----------------------------------------------*
  * ∫Í∂®“Â                                       *
  *----------------------------------------------*/
-#define MAX_DEV_NO 12
+
+#define MAX_FLOOR_NO 71
 
 typedef struct
 {
-    uint8_t data[MAX_DEV_NO];
+    uint8_t type;
+    uint8_t data[MAX_FLOOR_NO];
 }ELEVATOR_BUFF_STRU;
 
 
@@ -66,14 +68,12 @@ typedef struct
 extern ELEVATOR_BUFF_STRU gElevtorData,gRecvElevtorData;
 
 
-
 SYSERRORCODE_E packetToElevatorExtend(USERDATA_STRU *localUserData,ELEVATOR_BUFF_STRU *devSendData);//add 1204
-
-
 SYSERRORCODE_E calcSingleFloor(uint8_t layer,ELEVATOR_BUFF_STRU *eBuf);
-
 SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU *eBuf);
+
 void sendQueueToDev(ELEVATOR_BUFF_STRU *devSendData);
+
 
 
 #endif

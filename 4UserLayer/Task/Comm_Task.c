@@ -28,7 +28,6 @@
 #include "bsp_uart_fifo.h"
 #include "bsp_dipSwitch.h"
 #include "FloorDataProc.h"
-#include "bsp_usart6.h"
 #include "malloc.h"
 #include "tool.h"
 
@@ -74,6 +73,8 @@ TaskHandle_t xHandleTaskComm = NULL;
 /*----------------------------------------------*
  * 内部函数原型说明                             *
  *----------------------------------------------*/
+
+
 static void vTaskComm(void *pvParameters);
 static uint8_t deal_Serial_Parse(void);
 
@@ -94,34 +95,39 @@ void CreateCommTask(void)
 static void vTaskComm(void *pvParameters)
 {
     TickType_t xLastWakeTime;
-    ELEVATOR_BUFF_STRU *recvBuf = &gRecvElevtorData;
-    uint8_t devSn = 0;
 
+    ELEVATOR_BUFF_STRU *recvBuf = &gRecvElevtorData;
     uint32_t i = 0;
-    uint8_t buf[32] = {0};
     uint16_t bufLen = 0;    
+    uint8_t sendBuf[104] = {0x7E,0x55,0x53,0x5A,0x8D,0x4B,0x57,0xA1,0x00,0x00,0x00,0x00,0x02,0x01,0x04,0xBC,0x00,0x00,0x00,0x00,0x00,0x13,0x0C,0x1B,0x42,0x01,0x01,0x00,0x00,0x00,0x01,0x00,0x00}; 
     BaseType_t xReturn = pdTRUE;/* 定义一个创建信息返回值，默认为pdPASS */
-    const TickType_t xMaxBlockTime = pdMS_TO_TICKS(30); /* 设置最大等待时间为200ms */  
+    const TickType_t xMaxBlockTime = pdMS_TO_TICKS(50); /* 设置最大等待时间为200ms */  
+//    uint8_t tmp[33] = { 0x7E,0x55,0x53,0x5A,0x8D,0x4B,0x57,0xA1,0x00,0x00,0x00,0x00,0x02,0x00,0x04,0xBC,0x00,0x00,0x00,0x00,0x00,0x13,0x0C,0x1B,0x42,0x01,0x01,0x00,0x00,0x00,0x01,0x00,0x00};
+
 
     xLastWakeTime = xTaskGetTickCount();
     
     while (1)
     {
+
         memset(&gRecvElevtorData,0x00,sizeof(gRecvElevtorData));       
 
   
         xReturn = xQueueReceive( xTransDataQueue,    /* 消息队列的句柄 */
-                                 (void *)recvBuf,  /*这里获取的是结构体的地址 */
+                                 (void *)&recvBuf,  /*这里获取的是结构体的地址 */
                                  xMaxBlockTime); /* 设置阻塞时间 */
         if(pdTRUE == xReturn)
         {
-            //消息接收成功，发送接收到的消息   
-            memset(buf,0x00,sizeof(buf));
-            RS485_SendBuf(COM6,recvBuf->data,sizeof(recvBuf->data)); 
-            dbh("send com6 buff", buf, bufLen); 
+            //消息接收成功，发送接收到的消息  
+            log_d("recvBuf->type = %d\r\n",recvBuf->type);
+            sendBuf[13] = recvBuf->type;
+            memcpy(sendBuf+33,recvBuf->data,71);
+            dbh("recv queue buff", sendBuf,104); 
+            RS485_SendBuf(COM6,sendBuf,104);    
         }
+
         
-        vTaskDelay(50);
+        vTaskDelay(300);
         
         if(deal_Serial_Parse() == FINISHED)
         { 
@@ -134,14 +140,15 @@ static void vTaskComm(void *pvParameters)
 
 }
 
+
 static uint8_t deal_Serial_Parse(void)
 {
     uint8_t ch = 0;
     uint8_t devID = 0;
-
     
     while(RS485_Recv(COM6,&ch,1))
     {
+       printf("%02x ",ch);
        switch (rxFromHost.rxStatus)
         {                
             case STEP1:
@@ -161,6 +168,7 @@ static uint8_t deal_Serial_Parse(void)
                     if(rxFromHost.rxCRC == rxFromHost.rxBuff[rxFromHost.rxCnt-1])
                     { 
                         memset(&rxFromHost,0x00,sizeof(FROMHOST_STRU));
+                        printf("\r\n");
                         return FINISHED;                         
                     }  
                     memset(&rxFromHost,0x00,sizeof(FROMHOST_STRU));
@@ -169,7 +177,6 @@ static uint8_t deal_Serial_Parse(void)
                 {
                      rxFromHost.rxCRC ^= ch;
                 }
-             
                 break;
          }
          

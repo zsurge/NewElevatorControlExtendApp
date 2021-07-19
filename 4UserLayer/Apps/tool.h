@@ -66,6 +66,8 @@ typedef struct {
 uint16_t CRC16_Modbus(uint8_t *pBuf, uint16_t usLen);
 
 uint8_t xorCRC(uint8_t *buf,uint8_t len);
+uint8_t sumCRC(uint8_t *buf,uint8_t len);
+
 
 void asc2bcd(unsigned char *bcd_buf, unsigned char *ascii_buf, int conv_len, unsigned char type);
 void bcd2asc(unsigned char *ascii_buf,unsigned char * bcd_buf, int conv_len, unsigned char type);
