@@ -167,7 +167,13 @@ static void vTaskDataProcess(void *pvParameters)
 //                localUserData.accessFloor[21] = 0x16;
 //                localUserData.accessFloor[22] = 0x17;
 //                localUserData.accessFloor[23] = 0x18;        
-//                localUserData.accessFloor[24] = 0x19;
+//                localUserData.accessFloor[24] = 0x19; 
+//                localUserData.accessFloor[25] = 0x1A;        
+
+
+
+
+                
 
                 if(localUserData.cardState != CARD_VALID || isFind != 0)
                 {

@@ -251,7 +251,15 @@ SYSERRORCODE_E calcMultilFloor(uint8_t *floorBuf,uint8_t num,ELEVATOR_BUFF_STRU 
     }
 
    //这里需要校验值，校验算法不知道
-    eBuf->type = 0x00;    
+   if(num>=25)
+   {
+     eBuf->type = 3;  
+   }
+   else
+   {
+     eBuf->type = 0x00;   
+   }
+       
     memcpy(eBuf->data,tmp,71);
 
 

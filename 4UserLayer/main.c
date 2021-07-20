@@ -183,7 +183,7 @@ static void AppObjCreate (void)
 //    xTransDataQueue = xQueueCreate((UBaseType_t ) 10,/* 消息队列的长度 */
 //                              (UBaseType_t ) sizeof(ELEVATOR_TRANBUFF_STRU *));/* 消息的大小 */
 
-    xTransDataQueue = xQueueCreate((UBaseType_t ) 8,/* 消息队列的长度 */
+    xTransDataQueue = xQueueCreate((UBaseType_t ) 10,/* 消息队列的长度 */
                               (UBaseType_t ) sizeof(ELEVATOR_BUFF_STRU *));/* 消息的大小 */
                               
     if(xTransDataQueue == NULL)
