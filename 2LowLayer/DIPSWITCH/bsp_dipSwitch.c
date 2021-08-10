@@ -41,7 +41,7 @@ void bsp_dipswitch_init(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;
 
-	RCC_AHB1PeriphClockCmd ( RCC_AHB1Periph_GPIOG, ENABLE );	//使能GPIOG时钟
+	RCC_AHB1PeriphClockCmd ( RCC_ALL_DIPSWITCH, ENABLE );	//使能GPIOG时钟
 
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_DIP0|GPIO_PIN_DIP1|GPIO_PIN_DIP2|GPIO_PIN_DIP3;
@@ -50,7 +50,14 @@ void bsp_dipswitch_init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;		    //上拉
 	GPIO_Init ( GPIO_PORT_DIPSWITCH, &GPIO_InitStructure );		//初始化GPIO
 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_DIP4|GPIO_PIN_DIP5;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;			//普通输入模式
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;		//100MHz
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;		    //上拉
+	GPIO_Init ( GPIOD, &GPIO_InitStructure );		//初始化GPIO	
+
 	GPIO_SetBits ( GPIO_PORT_DIPSWITCH,GPIO_PIN_DIP0|GPIO_PIN_DIP1|GPIO_PIN_DIP2|GPIO_PIN_DIP3);
+	GPIO_SetBits ( GPIOD,GPIO_PIN_DIP4|GPIO_PIN_DIP5);
 
 }
 

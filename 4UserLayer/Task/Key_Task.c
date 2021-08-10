@@ -50,6 +50,8 @@ const char *keyTaskName = "vKeyTask";
  * 模块级变量                                   *
  *----------------------------------------------*/
 TaskHandle_t xHandleTaskKey = NULL;
+#define MAX_TIME_OUT    3000
+
 
 /*----------------------------------------------*
  * 内部函数原型说明                             *
@@ -70,6 +72,8 @@ void CreateKeyTask(void)
                 (TaskHandle_t*  )&xHandleTaskKey); 
 }
 
+
+#if 0
 static void vTaskKey(void *pvParameters)
 {
     
@@ -115,13 +119,30 @@ static void vTaskKey(void *pvParameters)
 //                    log_d("read gpio2 = %d\r\n",(((bsp_dipswitch_read()>>1) & 0x07)));//第2，3，4用来补偿负楼层
                     log_d("dev sn = %d\r\n",((bsp_dipswitch_read() & 0x03) +1)); //第1位用来表示机器ID 
                     log_d("calc floor num = %d\r\n",(((bsp_dipswitch_read()>>2) & 0x03)));//第2，3，4用来补偿负楼层
-                    
+
+                    if(DIP4)
+                    {
+                        log_d("DIP4 = 1\r\n");
+                    }
+                    else
+                    {
+                        log_d("DIP4 = 0\r\n");
+                    }
+
+                    if(DIP5)
+                    {
+                        log_d("DIP5 = 1\r\n");
+                    }
+                    else
+                    {
+                        log_d("DIP5 = 0\r\n");
+                    }                    
                     
 //                      searchHeadTest("24450854");
 //                    farm_test();
 
 //                    testSplit();
-                    eraseUserDataAll();
+//                    eraseUserDataAll();
 //                      ee_test();
 //			        
 					break;
@@ -161,6 +182,129 @@ static void vTaskKey(void *pvParameters)
 		vTaskDelay(20);
 	}   
 
+}
+
+#endif
+static void vTaskKey(void *pvParameters)
+{
+    int32_t iTime1, iTime2;
+
+    while(1)
+    {
+        switch (Key_Scan(GPIOE, GPIO_Pin_2))
+        {
+            case KEY_ON: 
+                log_d("GPIO_Pin_2\r\n");
+                iTime1 = xTaskGetTickCount();   /* 记下开始时间 */      
+                if(DIP4)
+                {
+                    log_d("DIP4 = 1\r\n");
+                }
+                else
+                {
+                    log_d("DIP4 = 0\r\n");
+                }
+
+                if(DIP5)
+                {
+                    log_d("DIP5 = 1\r\n");
+                }
+                else
+                {
+                    log_d("DIP5 = 0\r\n");
+                }                 
+
+                break;            
+            case KEY_HOLD:     
+                log_d("GPIO_Pin_2 Long\r\n");                
+                break;
+            case KEY_OFF:  
+                iTime2 = xTaskGetTickCount();	/* 记下结束时间 */
+
+                if(iTime2 - iTime1 > MAX_TIME_OUT)
+                {
+                    log_d("GPIO_Pin_2 on\r\n");
+                }           
+                break;
+            case KEY_ERROR:              
+                break;
+            default:
+                break;
+        }
+        switch (Key_Scan(GPIOE, GPIO_Pin_3))
+        {
+            case KEY_ON: 
+                log_d("GPIO_Pin_3\r\n");
+                log_d("read gpio1 = %d\r\n",((bsp_dipswitch_read() & 0x01) +1)); //第1位用来表示机器ID                
+                log_d("read gpio2 = %d\r\n",(((bsp_dipswitch_read()>>1) & 0x07)));//第2，3，4用来补偿负楼层                
+                iTime1 = xTaskGetTickCount();   /* 记下开始时间 */   
+                
+
+                break;            
+            case KEY_HOLD:      
+                break;
+            case KEY_OFF:  
+                iTime2 = xTaskGetTickCount();	/* 记下结束时间 */
+
+                if(iTime2 - iTime1 > MAX_TIME_OUT)
+                {
+                }           
+                break;
+            case KEY_ERROR:              
+                break;
+            default:
+                break;
+        }
+        switch (Key_Scan(GPIOE, GPIO_Pin_4))
+        {
+            case KEY_ON: 
+                log_d("GPIO_Pin_4\r\n");
+                iTime1 = xTaskGetTickCount();   /* 记下开始时间 */              
+
+                break;            
+            case KEY_HOLD:      
+                break;
+            case KEY_OFF:  
+                iTime2 = xTaskGetTickCount();	/* 记下结束时间 */
+
+                if(iTime2 - iTime1 > MAX_TIME_OUT)
+                {
+                }           
+                break;
+            case KEY_ERROR:              
+                break;
+            default:
+                break;
+        }
+        switch (Key_Scan(GPIOA, GPIO_Pin_0))
+        {
+            case KEY_ON: 
+                log_d("GPIO_Pin_0\r\n");
+                iTime1 = xTaskGetTickCount();   /* 记下开始时间 */              
+
+                break;            
+            case KEY_HOLD:      
+                break;
+            case KEY_OFF:  
+                iTime2 = xTaskGetTickCount();	/* 记下结束时间 */
+
+                if(iTime2 - iTime1 > MAX_TIME_OUT)
+                {
+                    log_d ( "eraseUserDataAll开始记时\r\n");
+                    eraseUserDataAll();
+                }           
+                break;
+            case KEY_ERROR:              
+                break;
+            default:
+                break;
+        }
+
+        /* 发送事件标志，表示任务正常运行 */
+		xEventGroupSetBits(xCreatedEventGroup, TASK_BIT_2);
+		
+		vTaskDelay(20);        
+    }
 }
 
 

@@ -30,7 +30,7 @@
  * 宏定义                                       *
  *----------------------------------------------*/
 /* 拨码开关对应的RCC时钟 */
-#define RCC_ALL_DIPSWITCH     RCC_AHB1Periph_GPIOG     
+#define RCC_ALL_DIPSWITCH     RCC_AHB1Periph_GPIOG|RCC_AHB1Periph_GPIOG     
 
 #define GPIO_PORT_DIPSWITCH       GPIOG
      
@@ -39,10 +39,16 @@
 #define GPIO_PIN_DIP2       GPIO_Pin_5
 #define GPIO_PIN_DIP3       GPIO_Pin_4
 
+#define GPIO_PIN_DIP4       GPIO_Pin_15
+#define GPIO_PIN_DIP5       GPIO_Pin_14
+
+
 #define DIP0        PGin(7)   	
 #define DIP1 		PGin(6)		
 #define DIP2 		PGin(5)		
 #define DIP3		PGin(4)		
+#define DIP4 		PDin(15)		
+#define DIP5		PDin(14)	
 
 
 /*----------------------------------------------*

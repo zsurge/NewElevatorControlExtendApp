@@ -119,48 +119,64 @@ static void vTaskDataProcess(void *pvParameters)
                 
                 isFind = readUserData(cardNo,CARD_MODE,&localUserData);   
 
-                log_d("isFind = %d,rUserData.cardState = %d\r\n",isFind,localUserData.cardState);
-
-                if(localUserData.cardState != CARD_VALID || isFind != 0)
+                if(DIP5 == 1)
                 {
-                    //未找到记录，无权限
-                    log_e("not find record\r\n");
-                   break;
-                } 
-                
-                localUserData.authMode = ptMsg->authMode;
-                memcpy(localUserData.timeStamp,time_to_timestamp(),TIMESTAMP_LEN);
-                log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp); 
+                    log_d("isFind = %d,rUserData.cardState = %d\r\n",isFind,localUserData.cardState);
 
-                
-                //1.打包
-                packetPayload(&localUserData,jsonBuf); 
-                len = strlen((const char*)jsonBuf);
-                
-                //2.发给服务器
-                len = mqttSendData(jsonBuf,len);
-                log_d("send = %d\r\n",len);
-                
-                //3.计算电梯数据
-                ret = packetToElevatorExtend(&localUserData,&devSendData);
-                if(ret != NO_ERR)
-                {
-                    log_d("invalid floor\r\n");
-                    break;  //无权限   
-                } 
-                
-                //4.发送电梯数据到队列
-                for(i=0;i<8;i++)
-                {   
-                    if(devSendData.data[i].devSn >= 1)
+                    if(localUserData.cardState != CARD_VALID || isFind != 0)
                     {
-                        sendElevator->devSn = devSendData.data[i].devSn;
-                        sendElevator->value = devSendData.data[i].value;
+                        //未找到记录，无权限
+                        log_e("not find record\r\n");
+                       break;
+                    } 
+                    
+                    localUserData.authMode = ptMsg->authMode;
+                    memcpy(localUserData.timeStamp,time_to_timestamp(),TIMESTAMP_LEN);
+                    log_d("localUserData->timeStamp = %s\r\n",localUserData.timeStamp); 
+
+                    
+                    //1.打包
+                    packetPayload(&localUserData,jsonBuf); 
+                    len = strlen((const char*)jsonBuf);
+                    
+                    //2.发给服务器
+                    len = mqttSendData(jsonBuf,len);
+                    log_d("send = %d\r\n",len);
+                    
+                    //3.计算电梯数据
+                    ret = packetToElevatorExtend(&localUserData,&devSendData);
+                    if(ret != NO_ERR)
+                    {
+                        log_d("invalid floor\r\n");
+                        break;  //无权限   
+                    } 
+                    
+                    //4.发送电梯数据到队列
+                    for(i=0;i<4;i++)
+                    {   
+                        if(devSendData.data[i].devSn >= 1)
+                        {
+                            sendElevator->devSn = devSendData.data[i].devSn;
+                            sendElevator->value = devSendData.data[i].value;
+                            log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
+                           //发送数据到队列 
+                           sendQueueToDev(sendElevator);                
+                        }
+                    } 
+                }
+                else
+                {
+                    for(i=0;i<4;i++)
+                    {  
+                        sendElevator->devSn = i;
+                        sendElevator->value = 0xFFFFFFFF;
                         log_d("value = %x,devsn = %d\r\n",sendElevator->value,sendElevator->devSn);
-                       //发送数据到队列 
-                       sendQueueToDev(sendElevator);                
-                    }
-                } 
+                        
+                        //发送数据到队列 
+                        sendQueueToDev(sendElevator);                
+                     
+                    }                     
+                }
                 break;
             case AUTH_MODE_QR:
                 isFind = parseQrCode(ptMsg->data,&localUserData);
@@ -189,7 +205,7 @@ static void vTaskDataProcess(void *pvParameters)
                 }
 
                 //4.发送电梯数据到队列
-                for(i=0;i<8;i++)
+                for(i=0;i<4;i++)
                 {   
                     if(devSendData.data[i].devSn >= 1)
                     {
@@ -211,7 +227,7 @@ static void vTaskDataProcess(void *pvParameters)
                     log_d("invalid floor\r\n");
                     break;
                 }
-                for(i=0;i<8;i++)
+                for(i=0;i<4;i++)
                 {   
                     if(devSendData.data[i].devSn >= 1)
                     {

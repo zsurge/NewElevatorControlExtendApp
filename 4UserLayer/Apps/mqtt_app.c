@@ -346,7 +346,7 @@ log_d("2 gDevBaseParam.deviceCode.qrSn = %s,gDevBaseParam.deviceCode.qrSnLen = %
                         gConnectStatus = 0;
                         goto MQTT_reconnect;     
                 	}				    
-					log_d("send PINGREQ Successfully,,pingEQTimes = %d\r\n",pingEQTimes);
+//					log_d("send PINGREQ Successfully,,pingEQTimes = %d\r\n",pingEQTimes);
 			    }
 				else
 				{
@@ -389,7 +389,7 @@ log_d("2 gDevBaseParam.deviceCode.qrSn = %s,gDevBaseParam.deviceCode.qrSnLen = %
 			//心跳响应
 			case PINGRESP://13
 			    pingEQTimes--;
-				log_d ( "step = %d,mqtt server Pong\r\n",PINGRESP );  			//心跳回执，服务有响应
+//				log_d ( "step = %d,mqtt server Pong\r\n",PINGRESP );  			//心跳回执，服务有响应
 				msgtypes = 0;
 				break;
             case UNSUBSCRIBE:

@@ -24,41 +24,6 @@
 
 #if 0
 
-/* 按键口对应的RCC时钟 */
-#define RCC_ALL_KEY     (RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOE)
-
-#define GPIO_PORT_KEY       GPIOE
-
-#define GPIO_PIN_KEY_SET    GPIO_Pin_2
-#define GPIO_PIN_KEY_RR     GPIO_Pin_3
-#define GPIO_PIN_KEY_LL     GPIO_Pin_4
-
-#define GPIO_PORT_KEY_OK    GPIOA
-#define GPIO_PIN_KEY_OK     GPIO_Pin_0
-
-
-#define KEY_SET     PEin(2)   	//PE2
-#define KEY_RR 		PEin(3)		//PE3 
-#define KEY_LL 		PEin(4)		//PE4
-#define KEY_OK		PAin(0)		//PA0 
-
-//#define KEY_SET 	GPIO_ReadInputDataBit(GPIO_PORT_KEY,GPIO_PIN_KEY_SET)   //PA4
-//#define KEY_RR 		GPIO_ReadInputDataBit(GPIO_PORT_KEY,GPIO_PIN_KEY_RR)	//PA0  
-//#define KEY_LL 		GPIO_ReadInputDataBit(GPIO_PORT_KEY,GPIO_PIN_KEY_LL)    //PA1
-//#define KEY_OK 	    GPIO_ReadInputDataBit(GPIO_PORT_KEY_OK,GPIO_PIN_KEY_OK)	//PC3 
-
-
-#define KEY_NONE        0   //无按键
-#define KEY_SET_PRES 	1	//KEY0按下
-#define KEY_RR_PRES	    2	//KEY1按下
-#define KEY_LL_PRES	    3	//KEY2按下
-#define KEY_OK_PRES     4	//KEY3按下
-
-
-void bsp_key_Init(void);	//IO初始化
-u8 bsp_key_Scan(u8);  		//按键扫描函数		
-#endif
-
 
 
 /*下面的方式是通过直接操作库函数方式读取IO*/
@@ -84,6 +49,47 @@ u8 bsp_key_Scan(u8);  		//按键扫描函数
 
 void bsp_key_Init(void);	//IO初始化
 uint8_t bsp_Key_Scan(u8);  		//按键扫描函数	
+#endif
+
+#define KEY_NONE        0   //无按键
+#define KEY_SET_PRES 	1	//KEY0按下
+#define KEY_RR_PRES	    2	//KEY1按下
+#define KEY_LL_PRES	    3	//KEY2按下
+#define KEY_OK_PRES     4	//KEY3按下
+
+
+
+
+//宏定义
+#define    	KEY_OFF	   		1
+#define    	KEY_ON	   	 	0
+#define    	KEY_HOLD		2
+#define		KEY_IDLE		3
+#define		KEY_ERROR		10
+
+#define		HOLD_COUNTS			50
+#define 	SHAKES_COUNTS		5
+
+
+//按键状态结构体，存储四个变量
+typedef struct
+{
+ 	uint8_t KeyLogic;
+	uint8_t KeyPhysic;
+ 	uint8_t KeyONCounts;
+ 	uint8_t KeyOFFCounts;
+}KEY_TypeDef;
+
+
+
+
+
+
+
+void bsp_key_Init(void);	//IO初始化
+//uint8_t bsp_key_Scan(uint8_t);  		//按键扫描函数		
+uint8_t Key_Scan(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
+
 
 
 #endif

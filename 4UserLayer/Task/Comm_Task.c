@@ -108,7 +108,8 @@ static void vTaskComm(void *pvParameters)
     
     while (1)
     {
-        memset(&gRecvElevtorData,0x00,sizeof(gRecvElevtorData));       
+        memset(&gRecvElevtorData,0x00,sizeof(gRecvElevtorData));  
+
 
         if(gDevBaseParam.deviceState.iFlag == DEVICE_ENABLE)
         {

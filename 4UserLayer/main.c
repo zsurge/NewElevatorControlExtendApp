@@ -106,31 +106,34 @@ static void AppTaskCreate (void)
     StartEthernet();   
 
     //握手
-    CreateHandShakeTask();
+    CreateHandShakeTask(); //0
 
     //LED灯
 //    CreateLedTask();
 
     //跟电梯通讯
-    CreateCommTask();
+    CreateCommTask(); //8
 
     //数码管显示
 //    CreateHc595Task();
 
     //数据处理
-    CreateDataProcessTask();
+    CreateDataProcessTask(); //7
     
 //    //按键
-    CreateKeyTask();
+    CreateKeyTask(); //3
 
     //二合一读卡器
-    CreateBarCodeTask();
+    CreateBarCodeTask(); //6
 
     //MQTT通讯
-    CreateMqttTask();
+    CreateMqttTask(); //5
 
     //看门狗
-    CreateWatchDogTask();
+    if(DIP5)
+    {
+        CreateWatchDogTask(); //9
+    }
 
     //删除本身
     vTaskDelete(xHandleTaskAppCreate); //删除AppTaskCreate任务

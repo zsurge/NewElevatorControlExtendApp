@@ -19,6 +19,13 @@
 
 #include "bsp_key.h"
 
+//按键结构体数组，初始状态都是关闭
+static KEY_TypeDef Key[4] =
+	{{KEY_OFF, KEY_OFF, 0, 0},
+	 {KEY_OFF, KEY_OFF, 0, 0},
+     {KEY_OFF, KEY_OFF, 0, 0},
+     {KEY_OFF, KEY_OFF, 0, 0}};
+
 
 void bsp_key_Init(void)
 {
@@ -39,29 +46,152 @@ void bsp_key_Init(void)
     GPIO_Init(GPIOA, &GPIO_InitStructure);//初始化GPIOA0
 
 } 
-//按键处理函数
-//返回按键值
-//mode:0,不支持连续按;1,支持连续按;
-//0，没有任何按键按下
-//1，KEY0按下
-//2，KEY1按下
-//3，KEY2按下 
-//4，WKUP按下 WK_UP
-//注意此函数有响应优先级,KEY0>KEY1>KEY2>WK_UP!!
-uint8_t bsp_Key_Scan(u8 mode)
-{	 
-	static uint8_t key_up=1;//按键按松开标志
-	if(mode)key_up=1;  //支持连按		  
-	if(key_up&&(KEY0==0||KEY1==0||KEY2==0||WK_UP==0))
+
+
+
+/*
+ * 函数名：Key_Scan
+ * 描述  ：检测是否有按键按下
+ * 输入  ：GPIOx：gpio的port
+ *		   GPIO_Pin：gpio的pin
+ * 输出  ：KEY_OFF、KEY_ON、KEY_HOLD、KEY_IDLE、KEY_ERROR
+ */
+ 
+uint8_t Key_Scan(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+{
+	KEY_TypeDef *KeyTemp;
+
+	//检查按下的是哪一个按钮
+	switch ((uint32_t)GPIOx)
 	{
-		delay_ms(10);//去抖动 
-		key_up=0;
-		if(KEY0==0)return 1;
-		else if(KEY1==0)return 2;
-		else if(KEY2==0)return 3;
-		else if(WK_UP==0)return 4;
-	}else if(KEY0==1&&KEY1==1&&KEY2==1&&WK_UP==1)key_up=1; 	    
- 	return 0;// 无按键按下
+    	case ((uint32_t)GPIOE):
+    		switch (GPIO_Pin)
+    		{
+        		case GPIO_Pin_2:
+        			KeyTemp = &Key[0];
+        			break;	
+        		case GPIO_Pin_3:
+        			KeyTemp = &Key[1];
+        			break;	
+        		case GPIO_Pin_4:
+        			KeyTemp = &Key[2];
+        			break;
+        		//port和pin不匹配
+        		default:
+        			//printf("error: GPIO port pin not match\r\n");
+        			return KEY_IDLE;
+    		}
+    		break;
+
+    	case ((uint32_t)GPIOA):
+    		switch (GPIO_Pin)
+    		{
+        		case GPIO_Pin_0:
+        			KeyTemp = &Key[3];
+        			break;				
+
+        		//port和pin不匹配
+        		default:
+        			//printf("error: GPIO port pin not match\r\n");
+        			return KEY_IDLE;
+    		}
+    		break;
+
+    	default:
+    		//printf("error: key do not exist\r\n");
+    		return KEY_IDLE;
+	}
+
+	/* 检测按下、松开、长按 */
+	KeyTemp->KeyPhysic = GPIO_ReadInputDataBit(GPIOx, GPIO_Pin);
+
+	switch (KeyTemp->KeyLogic)
+	{
+	
+	case KEY_ON:
+		switch (KeyTemp->KeyPhysic)
+		{
+		
+		//（1，1）中将关闭计数清零，并对开启计数累加直到切换至逻辑长按状态
+		case KEY_ON:
+			KeyTemp->KeyOFFCounts = 0;
+			KeyTemp->KeyONCounts++;
+			if (KeyTemp->KeyONCounts >= HOLD_COUNTS)
+			{
+				KeyTemp->KeyONCounts = 0;
+				KeyTemp->KeyLogic = KEY_HOLD;
+				return KEY_HOLD;
+			}
+			return KEY_IDLE;
+			
+		//（1，0）中对关闭计数累加直到切换至逻辑关闭状态
+		case KEY_OFF:
+			KeyTemp->KeyOFFCounts++;
+			if (KeyTemp->KeyOFFCounts >= SHAKES_COUNTS)
+			{
+				KeyTemp->KeyLogic = KEY_OFF;
+				KeyTemp->KeyOFFCounts = 0;
+				return KEY_OFF;
+			}
+			return KEY_IDLE;
+
+		default:
+			break;
+		}
+
+	case KEY_OFF:
+		switch (KeyTemp->KeyPhysic)
+		{
+		
+		//（0，1）中对开启计数累加直到切换至逻辑开启状态
+		case KEY_ON:
+			(KeyTemp->KeyONCounts)++;
+			if (KeyTemp->KeyONCounts >= SHAKES_COUNTS)
+			{
+				KeyTemp->KeyLogic = KEY_ON;
+				KeyTemp->KeyONCounts = 0;
+
+				return KEY_ON;
+			}
+			return KEY_IDLE;
+			
+		//（0，0）中将开启计数清零
+		case KEY_OFF:
+			(KeyTemp->KeyONCounts) = 0;
+			return KEY_IDLE;
+		default:
+			break;
+		}
+
+	case KEY_HOLD:
+		switch (KeyTemp->KeyPhysic)
+		{
+		
+		//（2，1）对关闭计数清零
+		case KEY_ON:
+			KeyTemp->KeyOFFCounts = 0;
+			return KEY_HOLD;
+		//（2，0）对关闭计数累加直到切换至逻辑关闭状态
+		case KEY_OFF:
+			(KeyTemp->KeyOFFCounts)++;
+			if (KeyTemp->KeyOFFCounts >= SHAKES_COUNTS)
+			{
+				KeyTemp->KeyLogic = KEY_OFF;
+				KeyTemp->KeyOFFCounts = 0;
+				return KEY_OFF;
+			}
+			return KEY_IDLE;
+
+		default:
+			break;
+		}
+
+	default:
+		break;
+	}
+	
+	//一般不会到这里
+	return KEY_ERROR;
 }
 
 

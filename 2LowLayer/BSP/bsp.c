@@ -79,6 +79,9 @@ static void my_mem_init(void)
 
 //    bsp_WiegandInit();          //韦根读卡器初始化
 
+    bsp_dipswitch_init();
+
+
     my_mem_init();                  //对内存进行初始化
 
   /* CmBacktrace initialize */
