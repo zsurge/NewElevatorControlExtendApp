@@ -56,7 +56,7 @@ typedef struct FROMHOST
 }FROMHOST_STRU;
 
  
-#define COMM_TASK_PRIO		(tskIDLE_PRIORITY + 6) 
+#define COMM_TASK_PRIO		(tskIDLE_PRIORITY + 9) 
 #define COMM_STK_SIZE 		(configMINIMAL_STACK_SIZE*4)
 
 uint16_t packetBuf(ELEVATOR_TRANBUFF_STRU *src,uint8_t *desc);

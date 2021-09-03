@@ -112,7 +112,7 @@ static void AppTaskCreate (void)
 //    CreateLedTask();
 
     //跟电梯通讯
-    CreateCommTask(); //8
+    CreateCommTask(); //6
 
     //数码管显示
 //    CreateHc595Task();
@@ -124,7 +124,7 @@ static void AppTaskCreate (void)
     CreateKeyTask(); //3
 
     //二合一读卡器
-    CreateBarCodeTask(); //6
+    CreateBarCodeTask(); //8
 
     //MQTT通讯
     CreateMqttTask(); //5
@@ -132,7 +132,7 @@ static void AppTaskCreate (void)
     //看门狗
     if(DIP5)
     {
-        CreateWatchDogTask(); //9
+        CreateWatchDogTask(); //10
     }
 
     //删除本身

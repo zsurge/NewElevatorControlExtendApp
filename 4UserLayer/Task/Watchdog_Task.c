@@ -25,7 +25,7 @@
 /*----------------------------------------------*
  * ∫Í∂®“Â                                       *
  *----------------------------------------------*/
-#define WATCHDOG_TASK_PRIO		(tskIDLE_PRIORITY + 9)
+#define WATCHDOG_TASK_PRIO		(tskIDLE_PRIORITY + 10)
 #define WATCHDOG_STK_SIZE 		(configMINIMAL_STACK_SIZE*4)
 
 /*----------------------------------------------*
