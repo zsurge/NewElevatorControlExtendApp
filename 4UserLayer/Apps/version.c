@@ -45,11 +45,11 @@
 static uint8_t * GetDevSn(void);
 static uint8_t * GetDevIP(void);
     
-const uint8_t VersionString[] = "1.0.5";
+const uint8_t VersionString[] = "1.0.6";
 const uint8_t Hardversion[] = "1.0.1";
 const uint8_t SoftBulidDate[] = __DATE__ " " __TIME__;
 const uint8_t DevModel[] = "ElevatorControlExAPP";
-const uint8_t DevBatch[] = "20200902001";
+const uint8_t DevBatch[] = "20200923001";
 
 
 static uint8_t * GetDevSn(void)

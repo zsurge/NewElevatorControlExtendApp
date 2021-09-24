@@ -159,7 +159,8 @@ uint8_t writeUserData ( USERDATA_STRU *userData,uint8_t mode )
 	uint32_t index = 0;
     uint8_t head[8] = {0};
     int tmpIndex = 0;
-	HEADINFO_STRU tmpHead;
+	HEADINFO_STRU tmpHead,getFlashHead;
+	uint32_t flashIndex = 0;
 
 	int32_t iTime1, iTime2;
 
@@ -208,14 +209,26 @@ uint8_t writeUserData ( USERDATA_STRU *userData,uint8_t mode )
 	}
 	else
 	{
+
+        getFlashHead.flashAddr = 0;
+        getFlashHead.headData.id = 0;	
+        ret = FRAM_Read (FM24V10_1, addr+tmpIndex*CARD_USER_LEN, &getFlashHead,CARD_USER_LEN);    
+        if(ret == 0)
+        {
+            log_e("read fram error\r\n");
+            return NO_FIND_HEAD; 
+        }
+
+        flashIndex = getFlashHead.flashAddr;
+    
     	//ªÒ»°µÿ÷∑
     	if ( mode == CARD_MODE )
     	{
-    		addr = CARD_NO_DATA_ADDR + tmpIndex * ( sizeof ( USERDATA_STRU ) );;
+    		addr = CARD_NO_DATA_ADDR + flashIndex * ( sizeof ( USERDATA_STRU ) );;
     	}
     	else if ( mode == USER_MODE )
     	{
-    		addr = USER_ID_DATA_ADDR + tmpIndex * ( sizeof ( USERDATA_STRU ) );
+    		addr = USER_ID_DATA_ADDR + flashIndex * ( sizeof ( USERDATA_STRU ) );
     	}	
 	}
 

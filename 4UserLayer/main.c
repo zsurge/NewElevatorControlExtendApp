@@ -58,12 +58,11 @@ static void AppObjCreate (void);
 static void App_Printf(char *format, ...);
 static void EasyLogInit(void);
 
-
 int main(void)
-{   
+{  
     //硬件初始化
-    bsp_Init();  
-
+    bsp_Init();   
+    
     EasyLogInit();  
     
 	/* 创建任务通信机制 */
