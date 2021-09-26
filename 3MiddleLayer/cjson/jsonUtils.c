@@ -110,6 +110,8 @@ SYSERRORCODE_E modifyJsonItem(const uint8_t *srcJson,const uint8_t *item,const u
     if(!tmpBuf)
     {
         cJSON_Delete(root);
+         my_free(tmpBuf);
+        tmpBuf=NULL;        
         log_d("cJSON_PrintUnformatted error \r\n");
         return CJSON_FORMAT_ERR;
     }    
@@ -122,6 +124,7 @@ SYSERRORCODE_E modifyJsonItem(const uint8_t *srcJson,const uint8_t *item,const u
     cJSON_Delete(root);
 
     my_free(tmpBuf);
+    tmpBuf=NULL;
     
     return NO_ERR;
 
@@ -235,9 +238,7 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
 	if ( !root )
 	{
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
-        cJSON_Delete(root);
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);            
+        cJSON_Delete(root);             
 		return CJSON_PARSE_ERR;
 	}
 	else
@@ -248,12 +249,13 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
 
         newroot = cJSON_CreateObject();
         dataObj = cJSON_CreateObject();
-        if(!newroot && !dataObj)
+        
+        if(!newroot || !dataObj)
         {
             log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
             cJSON_Delete(root);
             cJSON_Delete(newroot);
-            my_free(tmpBuf);            
+            
     		return CJSON_CREATE_ERR;
         }
 
@@ -267,7 +269,7 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
         cJSON_AddStringToObject(dataObj, "appName", (const char*)gDevinfo.Model);
 
         memset(buf,0x00,sizeof(buf));
-        sprintf(buf,"%d",gRecordIndex.userIdIndex);
+        sprintf(buf,"%d",gRecordIndex.cardNoIndex);
         cJSON_AddStringToObject(dataObj, "regRersion", buf);
         cJSON_AddStringToObject(dataObj, "regface", " ");
         cJSON_AddStringToObject(dataObj, "ip", (const char*)gDevinfo.GetIP());
@@ -279,7 +281,8 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
             log_d("cJSON_PrintUnformatted error \r\n");
             cJSON_Delete(root);
             cJSON_Delete(newroot);         
-            my_free(tmpBuf);            
+            my_free(tmpBuf);         
+			tmpBuf=NULL;     
             return CJSON_FORMAT_ERR;
         }    
 
@@ -291,6 +294,8 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
     cJSON_Delete(newroot);
 
     my_free(tmpBuf);
+    tmpBuf=NULL;        
+    
 
     return result;
 }
@@ -356,8 +361,6 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
     {
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );        
         cJSON_Delete(root);
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);
         return CJSON_PARSE_ERR;
     }
 
@@ -366,8 +369,7 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
     {
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);            
+        cJSON_Delete(newroot);                   
         return CJSON_PARSE_ERR;
     }  
     
@@ -411,6 +413,7 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
         cJSON_Delete(root);
         cJSON_Delete(newroot);      
         my_free(tmpBuf);
+		tmpBuf=NULL;  
         return CJSON_PARSE_ERR;
     }
 
@@ -440,7 +443,7 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
     {          
         log_d("Error before: [%s]\r\n",cJSON_GetErrorPtr());  
         cJSON_Delete(root);
-        my_free(tmpBuf);
+  
         return CJSON_PARSE_ERR;
     } 
     
@@ -452,8 +455,10 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
     if(tmpBuf == NULL)
     {
         log_d("cJSON_PrintUnformatted error \r\n");
+        cJSON_Delete(root); 
         my_free(tmpBuf);
-        cJSON_Delete(root);        
+        tmpBuf=NULL; 
+               
         return CJSON_FORMAT_ERR;
     }    
 
@@ -465,6 +470,7 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
     cJSON_Delete(root);
 
     my_free(tmpBuf);
+    tmpBuf=NULL;        
 
     return result;
 }
@@ -597,9 +603,7 @@ uint8_t packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status,uint8_t* de
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         
         cJSON_Delete(root);        
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);
-        tmpBuf=NULL; 
+
 		return 1;
 	}
 	else
@@ -612,9 +616,8 @@ uint8_t packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status,uint8_t* de
             log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
             cJSON_Delete(root);
             cJSON_Delete(newroot);
-//            cJSON_Delete(newdataObj);
             my_free(tmpBuf);            
-            tmpBuf=NULL;        
+            tmpBuf=NULL;       
             
     		return 1;
         }
@@ -732,9 +735,9 @@ uint8_t packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status,uint8_t* de
 
             cJSON_Delete(root);
             cJSON_Delete(newroot);   
-//            cJSON_Delete(newdataObj);
+
             cJSON_Delete(pJsonArry);
-//            cJSON_Delete(pJsonsub);            
+       
             my_free(tmpBuf);
             tmpBuf=NULL;        
             
@@ -745,13 +748,11 @@ uint8_t packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status,uint8_t* de
 
 	}
 	
-    my_free(tmpBuf);
+    
 	cJSON_Delete(root);
     cJSON_Delete(newroot);
-//    cJSON_Delete(newdataObj);
-    cJSON_Delete(pJsonArry);
-//    cJSON_Delete(pJsonsub);            
-    
+    cJSON_Delete(pJsonArry);           
+    my_free(tmpBuf);
     tmpBuf=NULL;  
     
     return 0;    
@@ -776,9 +777,7 @@ SYSERRORCODE_E PacketisEnableDev ( const uint8_t* jsonBuff,const uint8_t *srcCmd
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         
         cJSON_Delete(root);        
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);
-        tmpBuf=NULL; 
+
 		return 1;
 	}
 	else
@@ -791,7 +790,7 @@ SYSERRORCODE_E PacketisEnableDev ( const uint8_t* jsonBuff,const uint8_t *srcCmd
             log_d("Error before: [%s]\r\n",cJSON_GetErrorPtr());  
             cJSON_Delete(newroot);
             cJSON_Delete(root);
-            my_free(tmpBuf);
+         
             return CJSON_PARSE_ERR;
         } 
 
@@ -840,9 +839,11 @@ SYSERRORCODE_E PacketisEnableDev ( const uint8_t* jsonBuff,const uint8_t *srcCmd
         if(tmpBuf == NULL)
         {
             log_d("cJSON_PrintUnformatted error \r\n");
-            my_free(tmpBuf);
+            
             cJSON_Delete(root);    
             cJSON_Delete(newroot); 
+            my_free(tmpBuf);
+            tmpBuf=NULL;
             return CJSON_FORMAT_ERR;
         }    
 
@@ -855,7 +856,7 @@ SYSERRORCODE_E PacketisEnableDev ( const uint8_t* jsonBuff,const uint8_t *srcCmd
         cJSON_Delete(newroot);
 
         my_free(tmpBuf);
-
+        tmpBuf=NULL;
         return result;
 
     }
@@ -877,8 +878,7 @@ SYSERRORCODE_E PacketDownloadCardNo ( const uint8_t* jsonBuff,const uint8_t *car
 	{
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);            
+         
 		return CJSON_PARSE_ERR;
 	}
 	else
@@ -933,7 +933,8 @@ SYSERRORCODE_E PacketDownloadCardNo ( const uint8_t* jsonBuff,const uint8_t *car
             log_d("cJSON_PrintUnformatted error \r\n");
             cJSON_Delete(root);
             cJSON_Delete(newroot);         
-            my_free(tmpBuf);            
+            my_free(tmpBuf);  
+            tmpBuf=NULL;
             return CJSON_FORMAT_ERR;
         }    
 
@@ -945,7 +946,7 @@ SYSERRORCODE_E PacketDownloadCardNo ( const uint8_t* jsonBuff,const uint8_t *car
     cJSON_Delete(newroot);
 
     my_free(tmpBuf);
-
+    tmpBuf=NULL;
     return result;
 }
 
@@ -964,7 +965,7 @@ void GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num,uin
     {
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
-        my_free(root);
+
         return ;      
     }
     else
@@ -1004,8 +1005,7 @@ void GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num,uin
                  *num = 0;
                 log_d("card no is empty \r\n");
                 cJSON_Delete(root);
-                my_free(root);
-                
+
                 return ;      
             }
         
@@ -1030,7 +1030,7 @@ void GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num,uin
             *num = 0;
             log_d ( "can't parse json buff\r\n" );
             cJSON_Delete(root);
-            my_free(root);
+         
             
           return ; 
         }
@@ -1038,7 +1038,7 @@ void GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num,uin
     } 
     
     cJSON_Delete(root);
-    my_free(root);
+ 
 }
 
 

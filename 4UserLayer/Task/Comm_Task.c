@@ -130,7 +130,7 @@ static void vTaskComm(void *pvParameters)
             {
                 //无消息则发送握手消息            
                 memset(buf,0x00,sizeof(buf));
-                if(devSn > 7)
+                if(devSn > 3)
                 {
                   devSn = 0;
                 }
@@ -139,7 +139,7 @@ static void vTaskComm(void *pvParameters)
                 RS485_SendBuf(COM6,buf,bufLen); 
             }  
             
-            vTaskDelay(50);
+            vTaskDelay(30);
             
             if(deal_Serial_Parse() == FINISHED)
             { 
@@ -148,7 +148,7 @@ static void vTaskComm(void *pvParameters)
         }
         else
         {
-            vTaskDelay(500);
+            vTaskDelay(50);
         }
 
 		/* 发送事件标志，表示任务正常运行 */        
