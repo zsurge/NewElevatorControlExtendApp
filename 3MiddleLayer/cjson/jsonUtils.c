@@ -111,6 +111,8 @@ SYSERRORCODE_E modifyJsonItem(const uint8_t *srcJson,const uint8_t *item,const u
     {
         cJSON_Delete(root);
         log_d("cJSON_PrintUnformatted error \r\n");
+        my_free(tmpBuf);
+        tmpBuf = NULL;
         return CJSON_FORMAT_ERR;
     }    
 
@@ -122,6 +124,8 @@ SYSERRORCODE_E modifyJsonItem(const uint8_t *srcJson,const uint8_t *item,const u
     cJSON_Delete(root);
 
     my_free(tmpBuf);
+    tmpBuf = NULL;
+
     
     return NO_ERR;
 
@@ -237,7 +241,7 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
         cJSON_Delete(newroot);
-        my_free(tmpBuf);            
+           
 		return CJSON_PARSE_ERR;
 	}
 	else
@@ -248,7 +252,7 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
 
         newroot = cJSON_CreateObject();
         dataObj = cJSON_CreateObject();
-        if(!newroot && !dataObj)
+        if(!newroot || !dataObj)
         {
             log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
             cJSON_Delete(root);
@@ -267,7 +271,7 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
         cJSON_AddStringToObject(dataObj, "appName", (const char*)gDevinfo.Model);
 
         memset(buf,0x00,sizeof(buf));
-        sprintf(buf,"%d",gRecordIndex.userIdIndex);
+        sprintf(buf,"%d",gRecordIndex.cardNoIndex);
         cJSON_AddStringToObject(dataObj, "regRersion", buf);
         cJSON_AddStringToObject(dataObj, "regface", " ");
         cJSON_AddStringToObject(dataObj, "ip", (const char*)gDevinfo.GetIP());
@@ -279,7 +283,8 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
             log_d("cJSON_PrintUnformatted error \r\n");
             cJSON_Delete(root);
             cJSON_Delete(newroot);         
-            my_free(tmpBuf);            
+            my_free(tmpBuf);
+            tmpBuf = NULL;         
             return CJSON_FORMAT_ERR;
         }    
 
@@ -291,7 +296,7 @@ SYSERRORCODE_E PacketDeviceInfo ( const uint8_t* jsonBuff,const uint8_t* descJso
     cJSON_Delete(newroot);
 
     my_free(tmpBuf);
-
+    tmpBuf = NULL;
     return result;
 }
 
@@ -356,8 +361,6 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
     {
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );        
         cJSON_Delete(root);
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);
         return CJSON_PARSE_ERR;
     }
 
@@ -367,7 +370,8 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
         log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         cJSON_Delete(root);
         cJSON_Delete(newroot);
-        my_free(tmpBuf);            
+        my_free(tmpBuf);  
+        tmpBuf = NULL;
         return CJSON_PARSE_ERR;
     }  
     
@@ -411,6 +415,7 @@ SYSERRORCODE_E saveUpgradeData(uint8_t *jsonBuff)
         cJSON_Delete(root);
         cJSON_Delete(newroot);      
         my_free(tmpBuf);
+        tmpBuf = NULL;
         return CJSON_PARSE_ERR;
     }
 
@@ -440,7 +445,7 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
     {          
         log_d("Error before: [%s]\r\n",cJSON_GetErrorPtr());  
         cJSON_Delete(root);
-        my_free(tmpBuf);
+
         return CJSON_PARSE_ERR;
     } 
     
@@ -451,9 +456,10 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
 
     if(tmpBuf == NULL)
     {
-        log_d("cJSON_PrintUnformatted error \r\n");
+        log_d("cJSON_PrintUnformatted error \r\n");        
+        cJSON_Delete(root);
         my_free(tmpBuf);
-        cJSON_Delete(root);        
+        tmpBuf = NULL;
         return CJSON_FORMAT_ERR;
     }    
 
@@ -465,119 +471,12 @@ SYSERRORCODE_E getTimePacket(uint8_t *descBuf)
     cJSON_Delete(root);
 
     my_free(tmpBuf);
+    tmpBuf = NULL;
 
     return result;
 }
 
 
-#if 0
-uint8_t* packetBaseJson(uint8_t *jsonBuff,char status)
-{
-    static uint8_t value[200] = {0};
-    
-	cJSON* root,*dataObj,*newroot,*json_cmdCode,*json_ownerId,*json_cardNo,*json_ownerType,*json_residentialId,*json_buildingId,*json_roomId,*json_identification,*json_userName;
-    char *tmpBuf;
-    
-	root = cJSON_Parse ( ( char* ) jsonBuff );    //解析数据包
-	
-	if ( !root )
-	{
-		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
-        
-        cJSON_Delete(root);        
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);
-        tmpBuf=NULL;        
-        
-		return NULL;
-	}
-	else
-	{
-        newroot = cJSON_CreateObject();   
-        if(!newroot)
-        {
-            log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
-            cJSON_Delete(root);
-            cJSON_Delete(newroot);
-            my_free(tmpBuf);            
-            tmpBuf=NULL;        
-            
-    		return NULL;
-        }
-
-        dataObj = cJSON_GetObjectItem ( root, "data" );
-        
-        json_cmdCode = cJSON_GetObjectItem ( root, "commandCode" );
-        
-        json_ownerId = cJSON_GetObjectItem ( dataObj, "ownerId" );       
-        json_cardNo = cJSON_GetObjectItem ( dataObj, "cardNo" );
-        json_ownerType = cJSON_GetObjectItem ( dataObj, "ownerType" );
-        json_residentialId = cJSON_GetObjectItem ( dataObj, "residentialId" );     
-        json_buildingId = cJSON_GetObjectItem ( dataObj, "buildingId" );
-        json_roomId = cJSON_GetObjectItem ( dataObj, "roomId" );   
-        json_identification = cJSON_GetObjectItem ( dataObj, "identification" );  
-        json_userName = cJSON_GetObjectItem ( dataObj, "userName" );
-
-        if(json_cmdCode)
-            cJSON_AddStringToObject(newroot, "commandCode", json_cmdCode->valuestring);     
-            
-        if(json_ownerId)
-            cJSON_AddNumberToObject(newroot, "ownerId", json_ownerId->valueint);
-            
-        
-        cJSON_AddStringToObject(newroot, "deviceCode",gDevBaseParam.deviceCode.deviceSn);
-
-        if(json_cardNo)
-            cJSON_AddStringToObject(newroot, "cardNo", json_cardNo->valuestring);     
-        if(json_identification)
-            cJSON_AddStringToObject(newroot, "identification", json_identification->valuestring);     
-        if(json_userName)
-            cJSON_AddStringToObject(newroot, "userName", json_userName->valuestring);           
-        if(json_ownerType)
-            cJSON_AddNumberToObject(newroot, "ownerType", json_ownerType->valueint);
-        if(json_residentialId)
-            cJSON_AddNumberToObject(newroot, "residentialId", json_residentialId->valueint);     
-            
-        if(json_buildingId)
-            cJSON_AddNumberToObject(newroot, "buildingId", json_buildingId->valueint);
-
-        if(json_roomId)
-            cJSON_AddNumberToObject(newroot, "roomId", json_roomId->valueint); 
-            
-        
-        if(status == 1)
-            cJSON_AddStringToObject(newroot, "status", "1");
-        else
-            cJSON_AddStringToObject(newroot, "status", "0");          
-
-        
-        tmpBuf = cJSON_PrintUnformatted(newroot); 
-
-
-        if(!tmpBuf)
-        {
-            log_d("cJSON_PrintUnformatted error \r\n");
-
-            cJSON_Delete(root);
-            cJSON_Delete(newroot);      
-            my_free(tmpBuf);
-            tmpBuf=NULL;        
-            
-            return NULL;
-        }    
-
-        strcpy((char *)value,tmpBuf);
-
-	}
-	
-    my_free(tmpBuf);
-	cJSON_Delete(root);
-    cJSON_Delete(newroot);
-    tmpBuf=NULL;  
-    
-    return value;    
-}
-#else
 uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
 {
     static uint8_t value[200] = {0};
@@ -591,11 +490,7 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
 	{
 		log_d ( "Error before: [%s]\r\n",cJSON_GetErrorPtr() );
         
-        cJSON_Delete(root);        
-        cJSON_Delete(newroot);
-        my_free(tmpBuf);
-        tmpBuf=NULL;        
-        
+        cJSON_Delete(root);  
 		return NULL;
 	}
 	else
@@ -711,7 +606,7 @@ uint8_t* packetBaseJson(uint8_t *jsonBuff,uint8_t *srcCmd,char status)
     return value;    
 }
 
-#endif
+
 
 
 uint8_t** GetCardArray ( const uint8_t* jsonBuff,const uint8_t* item,uint8_t *num)
